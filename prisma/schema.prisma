@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id               String        @id @default(uuid())
+  email            String        @unique
+  name             String?
+  avatarUrl        String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  resumes          Resume[]
+  analyses         JobAnalysis[]
+  applications     Application[]
+}
+
+model Resume {
+  id               String        @id @default(uuid())
+  userId           String
+  user             User          @relation(fields: [userId], references: [id])
+  originalName     String
+  fileUrl          String
+  parsedText       String        @db.Text
+  isDefault        Boolean       @default(false)
+  createdAt        DateTime      @default(now())
+  analyses         JobAnalysis[]
+}
+
+model JobAnalysis {
+  id               String        @id @default(uuid())
+  userId           String
+  user             User          @relation(fields: [userId], references: [id])
+  resumeId         String
+  resume           Resume        @relation(fields: [resumeId], references: [id])
+  jobTitle         String
+  company          String
+  jobDescription   String        @db.Text
+  matchScore       Int
+  analysisData     Json          // Stores missing skills, heatmaps, ATS warnings, etc.
+  createdAt        DateTime      @default(now())
+}
+
+model Application {
+  id               String        @id @default(uuid())
+  userId           String
+  user             User          @relation(fields: [userId], references: [id])
+  jobTitle         String
+  company          String
+  status           String        // Enum: Applied, OA, Interview, Rejected, Offer
+  appliedDate      DateTime      @default(now())
+  notes            String?       @db.Text
+}
