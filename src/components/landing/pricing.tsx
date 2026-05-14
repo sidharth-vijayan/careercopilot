@@ -79,13 +79,16 @@ export function Pricing() {
                   ))}
                 </ul>
               </div>
-              <Button
-                variant={tier.mostPopular ? "default" : "outline"}
-                className="mt-8 w-full"
-                asChild
+              <a
+                href={tier.href}
+                className={`mt-8 w-full inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 py-2 transition-colors ${
+                  tier.mostPopular
+                    ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                    : "border border-input bg-background hover:bg-accent hover:text-accent-foreground"
+                }`}
               >
-                <a href={tier.href}>{tier.mostPopular ? "Get started" : "Start for free"}</a>
-              </Button>
+                {tier.mostPopular ? "Get started" : "Start for free"}
+              </a>
             </motion.div>
           ))}
         </div>

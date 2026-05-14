@@ -5,6 +5,7 @@ import { Briefcase, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useApplicationStore } from "@/lib/store/applications";
 import { ApplicationStatus } from "@/types";
+import { toast } from "@/lib/store/toast";
 
 interface AddApplicationModalProps {
   isOpen: boolean;
@@ -57,6 +58,11 @@ export function AddApplicationModal({
       appliedAt: new Date().toISOString(),
       notes: notes.trim() || undefined,
       jobDescription: prefill?.jobDescription,
+    });
+
+    toast("Application Tracked", {
+      description: `Added ${company.trim()} to your application tracker.`,
+      type: "success",
     });
 
     onClose();

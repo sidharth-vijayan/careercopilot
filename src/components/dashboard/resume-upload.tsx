@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { UploadCloud, FileText, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { uploadAndParseResume } from "@/actions/resume";
+import { toast } from "@/lib/store/toast";
 
 interface ResumeUploadProps {
   onUploadSuccess?: (text: string) => void;
@@ -45,6 +46,7 @@ export function ResumeUpload({ onUploadSuccess }: ResumeUploadProps) {
     if (!validTypes.includes(selectedFile.type)) {
       setStatus("error");
       setErrorMsg("Please upload a PDF or DOCX file.");
+      toast("Invalid file type", { description: "Please upload a PDF or DOCX file.", type: "error" });
       return;
     }
     
@@ -66,16 +68,19 @@ export function ResumeUpload({ onUploadSuccess }: ResumeUploadProps) {
       
       if (result.success) {
         setStatus("success");
+        toast("Resume Parsed", { description: "Successfully extracted text from your resume.", type: "success" });
         if (onUploadSuccess && result.data?.text) {
           onUploadSuccess(result.data.text);
         }
       } else {
         setStatus("error");
         setErrorMsg(result.error || "Failed to parse resume.");
+        toast("Parsing Failed", { description: result.error || "Failed to parse resume.", type: "error" });
       }
     } catch (error) {
       setStatus("error");
       setErrorMsg("An unexpected error occurred.");
+      toast("Error", { description: "An unexpected error occurred during parsing.", type: "error" });
     }
   };
 

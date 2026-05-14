@@ -15,6 +15,8 @@ import { analyzeResumeWithAI } from "@/actions/analyze";
 import { ResumeEditor } from "@/components/dashboard/resume-editor";
 import { AddApplicationModal } from "@/components/dashboard/add-application-modal";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import { toast } from "@/lib/store/toast";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface JobAnalyzerProps {
   resumeText: string;
@@ -44,11 +46,23 @@ export function JobAnalyzer({ resumeText: initialResumeText, onReset }: JobAnaly
       const response = await analyzeResumeWithAI(textToAnalyze, jobDescription);
       if (response.success) {
         setResults(response.data);
+        toast("Analysis Complete", {
+          description: `Your ATS match score is ${response.data.matchScore}%`,
+          type: "success",
+        });
       } else {
         setError(response.error || "Failed to analyze");
+        toast("Analysis Failed", {
+          description: response.error || "Failed to analyze",
+          type: "error",
+        });
       }
     } catch (err) {
       setError("An unexpected error occurred");
+      toast("Error", {
+        description: "An unexpected error occurred during analysis.",
+        type: "error",
+      });
     } finally {
       setIsAnalyzing(false);
     }
@@ -73,15 +87,51 @@ export function JobAnalyzer({ resumeText: initialResumeText, onReset }: JobAnaly
     );
   }
 
-  // Loading state during re-analysis
-  if (isAnalyzing && results) {
+  // Loading state during re-analysis or initial analysis
+  if (isAnalyzing) {
     return (
-      <div className="w-full max-w-4xl mx-auto mt-16 flex flex-col items-center justify-center space-y-4">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
-        <h3 className="text-xl font-semibold text-foreground">
-          Re-analyzing your updated resume...
-        </h3>
-        <p className="text-muted-foreground">This usually takes 10–20 seconds.</p>
+      <div className="w-full max-w-4xl mx-auto mt-8 space-y-8 animate-in fade-in duration-500">
+        <div className="flex flex-col items-center justify-center space-y-4 py-8">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <h3 className="text-xl font-semibold text-foreground">
+            {results ? "Re-analyzing your updated resume..." : "Analyzing job compatibility..."}
+          </h3>
+          <p className="text-muted-foreground text-sm">
+            Our AI is comparing your resume against the job description...
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="md:col-span-1 rounded-xl border bg-card p-6 flex flex-col items-center justify-center">
+            <Skeleton className="h-4 mb-4 w-32" />
+            <Skeleton className="h-48 w-48 rounded-full" />
+          </div>
+          <div className="md:col-span-2 rounded-xl border bg-card p-6 flex flex-col justify-center gap-4">
+            <Skeleton className="h-6 w-48 mb-2" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-3/4" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="rounded-xl border bg-card p-6 space-y-4">
+            <Skeleton className="h-6 w-40" />
+            <div className="flex gap-2 flex-wrap">
+              {[1, 2, 3, 4].map((i) => (
+                <Skeleton key={i} className="h-8 w-24 rounded-full" />
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border bg-card p-6 space-y-4">
+            <Skeleton className="h-6 w-40" />
+            <div className="flex gap-2 flex-wrap">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-8 w-20 rounded-full" />
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
