@@ -1,10 +1,10 @@
 <div align="center">
 
-# 🧭 CareerCopilot
+# 👨🏻‍💻 CareerCopilot
 
 ### AI-Powered Career Intelligence Platform
 
-**Parse resumes · Analyze job descriptions · Generate tailored applications — all in one place.**
+**Parse resumes · Analyze job descriptions · Generate tailored applications · Track applications — all in one place.**
 
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
