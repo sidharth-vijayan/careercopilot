@@ -16,6 +16,8 @@ model User {
   resumes          Resume[]
   analyses         JobAnalysis[]
   applications     Application[]
+  vaultItems       VaultItem[]
+  tailoredResumes  TailoredResume[]
 }
 
 model Resume {
@@ -50,7 +52,30 @@ model Application {
   user             User          @relation(fields: [userId], references: [id])
   jobTitle         String
   company          String
-  status           String        // Enum: Applied, OA, Interview, Rejected, Offer
-  appliedDate      DateTime      @default(now())
+  status           String        // Enum: applied, interview, offer, rejected, saved
+  matchScore       Int?
+  jobDescription   String?       @db.Text
+  appliedAt        DateTime      @default(now())
   notes            String?       @db.Text
+}
+
+model VaultItem {
+  id               String        @id @default(uuid())
+  userId           String
+  user             User          @relation(fields: [userId], references: [id])
+  type             String        // "experience" | "project" | "skill"
+  title            String        // e.g. "Senior Software Engineer at TechCorp"
+  bulletPoints     Json          // Stores array of strings: string[]
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+}
+
+model TailoredResume {
+  id               String        @id @default(uuid())
+  userId           String
+  user             User          @relation(fields: [userId], references: [id])
+  jobTitle         String
+  company          String
+  tailoredData     Json          // Stores tailored structure: experiences, projects, skills list
+  createdAt        DateTime      @default(now())
 }
