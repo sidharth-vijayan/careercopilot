@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { Briefcase, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Briefcase, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useApplicationStore } from "@/lib/store/applications";
 import { ApplicationStatus } from "@/types";
 import { toast } from "@/lib/store/toast";
+import { createApplication, updateApplicationDetails } from "@/actions/application";
+import { Application } from "@/types";
 
 interface AddApplicationModalProps {
   isOpen: boolean;
@@ -15,6 +16,8 @@ interface AddApplicationModalProps {
     matchScore?: number;
     jobDescription?: string;
   };
+  editData?: Application;
+  onSuccess?: () => void;
 }
 
 const statusOptions: { value: ApplicationStatus; label: string }[] = [
@@ -28,44 +31,79 @@ export function AddApplicationModal({
   isOpen,
   onClose,
   prefill,
+  editData,
+  onSuccess,
 }: AddApplicationModalProps) {
-  const addApplication = useApplicationStore((s) => s.addApplication);
-
   const [company, setCompany] = useState("");
-  const [jobTitle, setJobTitle] = useState(prefill?.jobTitle || "");
+  const [jobTitle, setJobTitle] = useState("");
   const [status, setStatus] = useState<ApplicationStatus>("applied");
+  const [appliedDate, setAppliedDate] = useState(new Date().toISOString().substring(0, 10));
   const [notes, setNotes] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Reset form when prefill changes
-  const handleOpen = () => {
-    setJobTitle(prefill?.jobTitle || "");
-    setCompany("");
-    setStatus("applied");
-    setNotes("");
-  };
+  // Reset form when isOpen changes
+  useEffect(() => {
+    if (isOpen) {
+      if (editData) {
+        setJobTitle(editData.jobTitle);
+        setCompany(editData.company);
+        setStatus(editData.status);
+        setAppliedDate(editData.appliedAt.substring(0, 10));
+        setNotes(editData.notes || "");
+      } else {
+        setJobTitle(prefill?.jobTitle || "");
+        setCompany("");
+        setStatus("applied");
+        setAppliedDate(new Date().toISOString().substring(0, 10));
+        setNotes("");
+      }
+    }
+  }, [isOpen, prefill, editData]);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!company.trim() || !jobTitle.trim()) return;
 
-    addApplication({
-      jobTitle: jobTitle.trim(),
-      company: company.trim(),
-      status,
-      matchScore: prefill?.matchScore,
-      appliedAt: new Date().toISOString(),
-      notes: notes.trim() || undefined,
-      jobDescription: prefill?.jobDescription,
-    });
+    setIsSubmitting(true);
 
-    toast("Application Tracked", {
-      description: `Added ${company.trim()} to your application tracker.`,
-      type: "success",
-    });
+    let res;
+    if (editData) {
+      res = await updateApplicationDetails(editData.id, {
+        jobTitle: jobTitle.trim(),
+        company: company.trim(),
+        status,
+        appliedAt: new Date(appliedDate).toISOString(),
+        notes: notes.trim() || undefined,
+      });
+    } else {
+      res = await createApplication({
+        jobTitle: jobTitle.trim(),
+        company: company.trim(),
+        status,
+        matchScore: prefill?.matchScore,
+        appliedAt: new Date(appliedDate).toISOString(),
+        notes: notes.trim() || undefined,
+        jobDescription: prefill?.jobDescription,
+      });
+    }
 
-    onClose();
+    setIsSubmitting(false);
+
+    if (res.success) {
+      toast(editData ? "Application Updated" : "Application Tracked", {
+        description: editData ? `Updated details for ${company.trim()}.` : `Added ${company.trim()} to your application tracker.`,
+        type: "success",
+      });
+      if (onSuccess) onSuccess();
+      onClose();
+    } else {
+      toast(editData ? "Failed to update application" : "Failed to track application", {
+        description: res.error,
+        type: "error",
+      });
+    }
   };
 
   return (
@@ -81,7 +119,7 @@ export function AddApplicationModal({
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
             <Briefcase className="h-5 w-5 text-primary" />
-            Track Application
+            {editData ? "Edit Application" : "Track Application"}
           </h3>
           <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
             <X className="h-4 w-4" />
@@ -168,26 +206,17 @@ export function AddApplicationModal({
             </div>
           )}
 
-          {/* Applied Date — auto-filled */}
+          {/* Applied Date */}
           <div>
             <label className="text-sm font-medium text-foreground mb-1.5 block">
               Applied Date
-              <span className="ml-2 text-xs text-primary font-normal">
-                (auto-filled)
-              </span>
             </label>
             <input
-              type="text"
-              value={new Date().toLocaleDateString("en-IN", {
-                weekday: "short",
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-              disabled
-              className="flex h-10 w-full rounded-md border border-input bg-muted/50 px-3 py-2 text-sm text-muted-foreground cursor-not-allowed"
+              type="date"
+              value={appliedDate}
+              onChange={(e) => setAppliedDate(e.target.value)}
+              className="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              required
             />
           </div>
 
@@ -206,11 +235,12 @@ export function AddApplicationModal({
           </div>
 
           <div className="flex gap-3 pt-2">
-            <Button type="button" variant="outline" className="flex-1" onClick={onClose}>
+            <Button type="button" variant="outline" className="flex-1" onClick={onClose} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button type="submit" className="flex-1" disabled={!company.trim() || !jobTitle.trim()}>
-              Add to Tracker
+            <Button type="submit" className="flex-1" disabled={!company.trim() || !jobTitle.trim() || isSubmitting}>
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {editData ? "Update Application" : "Add to Tracker"}
             </Button>
           </div>
         </form>
