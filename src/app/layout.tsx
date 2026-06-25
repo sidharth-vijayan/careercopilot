@@ -1,22 +1,43 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono, Outfit, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+import { Analytics } from "@vercel/analytics/react";
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
 
+const outfit = Outfit({
+  variable: "--font-outfit",
+  subsets: ["latin"],
+});
+
+const jakarta = Plus_Jakarta_Sans({ variable: '--font-jakarta', subsets: ['latin'] });
+
 export const metadata: Metadata = {
-  title: "CareerCopilot",
-  description: "Intelligent resume optimization and job matching platform",
+  metadataBase: new URL(
+    process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : "http://localhost:3000"
+  ),
+  title: "CareerCopilot | Land your dream job with AI",
+  description: "Intelligent resume optimization and job matching platform. Tailor your resume instantly to any job description and track your applications.",
+  openGraph: {
+    title: "CareerCopilot",
+    description: "Land your dream job with AI precision. Automatically tailor resumes and track applications.",
+    url: "https://careercopilot.app", // Adjust once custom domain is set
+    siteName: "CareerCopilot",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "CareerCopilot | Land your dream job with AI",
+    description: "Intelligent resume optimization and job matching platform.",
+  },
 };
 
 export default function RootLayout({
@@ -27,7 +48,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${jakarta.variable} ${outfit.variable} antialiased`}
       >
         <ThemeProvider
           attribute="class"
@@ -37,6 +58,7 @@ export default function RootLayout({
         >
           {children}
           <Toaster />
+          <Analytics />
         </ThemeProvider>
       </body>
     </html>
