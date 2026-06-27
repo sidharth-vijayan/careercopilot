@@ -7,7 +7,7 @@ import { uploadAndParseResume } from "@/actions/resume";
 import { toast } from "@/lib/store/toast";
 
 interface ResumeUploadProps {
-  onUploadSuccess?: (text: string) => void;
+  onUploadSuccess?: (text: string, resumeId: string) => void;
 }
 
 export function ResumeUpload({ onUploadSuccess }: ResumeUploadProps) {
@@ -66,11 +66,11 @@ export function ResumeUpload({ onUploadSuccess }: ResumeUploadProps) {
       
       const result = await uploadAndParseResume(formData);
       
-      if (result.success) {
+      if (result.success && result.data) {
         setStatus("success");
         toast("Resume Parsed", { description: "Successfully extracted text from your resume.", type: "success" });
-        if (onUploadSuccess && result.data?.text) {
-          onUploadSuccess(result.data.text);
+        if (onUploadSuccess) {
+          onUploadSuccess(result.data.text, result.data.resumeId);
         }
       } else {
         setStatus("error");
