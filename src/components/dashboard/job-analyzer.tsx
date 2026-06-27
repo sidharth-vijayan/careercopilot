@@ -16,14 +16,16 @@ import { ResumeEditor } from "@/components/dashboard/resume-editor";
 import { AddApplicationModal } from "@/components/dashboard/add-application-modal";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { toast } from "@/lib/store/toast";
+import { updateResumeText } from "@/actions/resume";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface JobAnalyzerProps {
   resumeText: string;
+  resumeId: string;
   onReset: () => void;
 }
 
-export function JobAnalyzer({ resumeText: initialResumeText, onReset }: JobAnalyzerProps) {
+export function JobAnalyzer({ resumeText: initialResumeText, resumeId, onReset }: JobAnalyzerProps) {
   const [resumeText, setResumeText] = useState(initialResumeText);
   const [jobDescription, setJobDescription] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -33,7 +35,6 @@ export function JobAnalyzer({ resumeText: initialResumeText, onReset }: JobAnaly
   const [showTrackModal, setShowTrackModal] = useState(false);
 
   const handleAnalyze = async (overrideResumeText?: string) => {
-    const textToAnalyze = overrideResumeText ?? resumeText;
     if (!jobDescription.trim()) {
       setError("Please paste a job description first.");
       return;
@@ -43,7 +44,7 @@ export function JobAnalyzer({ resumeText: initialResumeText, onReset }: JobAnaly
     setError("");
 
     try {
-      const response = await analyzeResumeWithAI(textToAnalyze, jobDescription);
+      const response = await analyzeResumeWithAI(resumeId, jobDescription, overrideResumeText);
       if (response.success) {
         setResults(response.data);
         toast("Analysis Complete", {
@@ -68,9 +69,13 @@ export function JobAnalyzer({ resumeText: initialResumeText, onReset }: JobAnaly
     }
   };
 
-  const handleEditorSave = (updatedText: string) => {
+  const handleEditorSave = async (updatedText: string) => {
     setResumeText(updatedText);
     setIsEditing(false);
+    
+    toast("Saving updates...", { description: "Updating your resume in the database." });
+    await updateResumeText(resumeId, updatedText);
+    
     handleAnalyze(updatedText);
   };
 
