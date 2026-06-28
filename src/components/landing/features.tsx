@@ -28,19 +28,19 @@ const features = [
 
 export function Features() {
   return (
-    <section id="features" className="py-24 sm:py-32 bg-muted/50">
+    <section id="features" className="py-32 sm:py-44 bg-muted/50">
       <div className="container mx-auto px-4 md:px-8">
-        <div className="mx-auto max-w-2xl lg:text-center">
-          <h2 className="text-base font-semibold leading-7 text-primary">Optimize faster</h2>
-          <p className="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+        <div className="mx-auto max-w-3xl lg:text-center">
+          <h2 className="text-lg font-bold leading-7 text-primary tracking-wider uppercase">Optimize faster</h2>
+          <p className="mt-4 text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl md:text-6xl leading-[1.1]">
             Everything you need to get hired
           </p>
-          <p className="mt-6 text-lg leading-8 text-muted-foreground">
+          <p className="mt-8 text-xl leading-relaxed text-muted-foreground max-w-3xl mx-auto">
             CareerCopilot provides a comprehensive suite of AI-driven tools to ensure your resume always stands out to recruiters and passes ATS filters.
           </p>
         </div>
-        <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
-          <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-4">
+        <div className="mx-auto mt-24 max-w-3xl sm:mt-28 lg:mt-32 lg:max-w-none">
+          <dl className="grid max-w-xl grid-cols-1 gap-x-12 gap-y-20 lg:max-w-none lg:grid-cols-4 lg:gap-x-16">
             {features.map((feature, index) => (
               <motion.div
                 key={feature.name}
@@ -50,11 +50,11 @@ export function Features() {
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 className="flex flex-col"
               >
-                <dt className="flex items-center gap-x-3 text-base font-semibold leading-7 text-foreground">
-                  <feature.icon className="h-5 w-5 flex-none text-primary" aria-hidden="true" />
+                <dt className="flex items-center gap-x-4.5 text-xl font-bold leading-7 text-foreground">
+                  <feature.icon className="h-7 w-7 flex-none text-primary" aria-hidden="true" />
                   {feature.name}
                 </dt>
-                <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-muted-foreground">
+                <dd className="mt-5 flex flex-auto flex-col text-lg leading-relaxed text-muted-foreground">
                   <p className="flex-auto">{feature.description}</p>
                 </dd>
               </motion.div>
