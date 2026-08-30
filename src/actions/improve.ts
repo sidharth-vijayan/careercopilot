@@ -1,68 +1,49 @@
 "use server";
 
 import { ActionResponse } from "@/types";
-import { generateAIContent } from "@/lib/ai-provider";
+import { generateAIObject } from "@/lib/ai-provider";
 import prisma from "@/lib/prisma";
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { requireSyncedUserId } from "@/lib/auth";
+import { toActionError } from "@/lib/errors";
+import {
+  bulletInput,
+  bulletRewritesSchema,
+  optionalShortText,
+  resumeFeedbackSchema,
+  type ResumeFeedback,
+} from "@/lib/schemas";
 
-async function getUserId() {
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() { return cookieStore.getAll(); },
-        setAll() {},
-      },
-    }
-  );
-  const { data: { user } } = await supabase.auth.getUser();
-  return user?.id;
+export type { ResumeFeedback } from "@/lib/schemas";
+/** @deprecated Use `ResumeFeedback`. Kept so existing imports keep compiling. */
+export type ResumeFeedbackResult = ResumeFeedback;
+
+export interface RewriteOption {
+  label: string;
+  rewrite: string;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Resume Feedback — full AI analysis of a resume's quality
 // ─────────────────────────────────────────────────────────────────────────────
 
-export interface ResumeFeedbackResult {
-  overallScore: number;
-  summary: string;
-  strengths: string[];
-  warnings: {
-    severity: "low" | "medium" | "high";
-    category: string;
-    message: string;
-    suggestion: string;
-  }[];
-  formattingChecks: {
-    label: string;
-    passed: boolean;
-    detail: string;
-  }[];
-  bulletCritiques: {
-    originalBullet: string;
-    issue: string;
-    improvedVersion: string;
-  }[];
-}
-
 export async function getResumeFeedback(
   resumeId: string
-): Promise<ActionResponse<ResumeFeedbackResult>> {
-  if (!process.env.GEMINI_API_KEY && !process.env.GROQ_API_KEY) {
-    return { success: false, error: "No AI API key is configured." };
-  }
-
+): Promise<ActionResponse<ResumeFeedback>> {
   try {
-    const userId = await getUserId();
-    if (!userId) return { success: false, error: "Unauthorized" };
+    const userId = await requireSyncedUserId();
 
-    const resume = await prisma.resume.findUnique({
+    const resume = await prisma.resume.findFirst({
       where: { id: resumeId, userId },
+      select: { parsedText: true },
     });
     if (!resume) return { success: false, error: "Resume not found." };
+
+    if (!resume.parsedText?.trim()) {
+      return {
+        success: false,
+        error: "We couldn't read any text from that resume. Try re-uploading it.",
+      };
+    }
 
     const prompt = `
 You are an elite resume reviewer, ATS expert, and career coach.
@@ -100,17 +81,16 @@ Analyze the following resume text and return ONLY a JSON object matching this ex
 ${resume.parsedText.substring(0, 12000)}
 `;
 
-    const result = await generateAIContent({ prompt, jsonMode: true });
-    console.log(`[getResumeFeedback] Fulfilled by: ${result.provider}`);
+    const { data } = await generateAIObject({
+      prompt,
+      schema: resumeFeedbackSchema,
+      userId,
+      label: "resume-feedback",
+    });
 
-    const data = JSON.parse(result.text) as ResumeFeedbackResult;
     return { success: true, data };
-  } catch (error: any) {
-    console.error("Resume feedback failed:", error);
-    return {
-      success: false,
-      error: `AI analysis failed: ${error.message || "Unknown error"}`,
-    };
+  } catch (error) {
+    return toActionError(error, "The resume review failed. Please try again.");
   }
 }
 
@@ -118,67 +98,44 @@ ${resume.parsedText.substring(0, 12000)}
 // Bullet Rewriter — generate alternative bullet point versions
 // ─────────────────────────────────────────────────────────────────────────────
 
-export interface RewriteOption {
-  label: string;
-  rewrite: string;
-}
-
 export async function rewriteBulletPoint(
   bulletText: string,
   context?: string
 ): Promise<ActionResponse<RewriteOption[]>> {
-  if (!process.env.GEMINI_API_KEY && !process.env.GROQ_API_KEY) {
-    return { success: false, error: "No AI API key is configured." };
-  }
-
   try {
-    const userId = await getUserId();
-    if (!userId) return { success: false, error: "Unauthorized" };
-
-    if (!bulletText.trim()) {
-      return { success: false, error: "Bullet text is required." };
-    }
+    const userId = await requireSyncedUserId();
+    const bullet = bulletInput.parse(bulletText);
+    const ctx = optionalShortText.parse(context ?? "");
 
     const prompt = `
 You are an expert resume writer. Rewrite the following resume bullet point in 4 different styles.
 Each rewrite should be a single concise bullet point (1–2 lines max).
 
-${context ? `Context about the role/project: ${context}` : ""}
+${ctx ? `Context about the role/project: ${ctx}` : ""}
 
-Return ONLY a JSON array matching this schema:
-[
-  {
-    "label": "Quantified Impact",
-    "rewrite": string // version emphasizing metrics, numbers, percentages
-  },
-  {
-    "label": "Action-Oriented",
-    "rewrite": string // version with strong action verbs (Spearheaded, Architected, etc.)
-  },
-  {
-    "label": "Concise & Punchy",
-    "rewrite": string // shorter, tighter version
-  },
-  {
-    "label": "Technical Depth",
-    "rewrite": string // version highlighting technical details, tools, and technologies
-  }
-]
+Return ONLY a JSON object matching this schema:
+{
+  "rewrites": [
+    { "label": "Quantified Impact", "rewrite": string },  // emphasizes metrics, numbers, percentages
+    { "label": "Action-Oriented",   "rewrite": string },  // strong action verbs (Spearheaded, Architected, ...)
+    { "label": "Concise & Punchy",  "rewrite": string },  // shorter, tighter version
+    { "label": "Technical Depth",   "rewrite": string }   // highlights technical details, tools, technologies
+  ]
+}
 
 --- ORIGINAL BULLET ---
-${bulletText}
+${bullet}
 `;
 
-    const result = await generateAIContent({ prompt, jsonMode: true });
-    console.log(`[rewriteBulletPoint] Fulfilled by: ${result.provider}`);
+    const { data } = await generateAIObject({
+      prompt,
+      schema: bulletRewritesSchema,
+      userId,
+      label: "bullet-rewrite",
+    });
 
-    const data = JSON.parse(result.text) as RewriteOption[];
-    return { success: true, data };
-  } catch (error: any) {
-    console.error("Bullet rewrite failed:", error);
-    return {
-      success: false,
-      error: `AI rewrite failed: ${error.message || "Unknown error"}`,
-    };
+    return { success: true, data: data.rewrites };
+  } catch (error) {
+    return toActionError(error, "The rewrite failed. Please try again.");
   }
 }

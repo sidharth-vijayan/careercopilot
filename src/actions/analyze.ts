@@ -1,57 +1,44 @@
 "use server";
 
 import { ActionResponse } from "@/types";
-import { generateAIContent } from "@/lib/ai-provider";
+import { generateAIObject } from "@/lib/ai-provider";
 import prisma from "@/lib/prisma";
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
-
-async function getUserIdAndSupabase() {
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() { return cookieStore.getAll(); },
-        setAll() {},
-      },
-    }
-  );
-  const { data: { user } } = await supabase.auth.getUser();
-  return { userId: user?.id };
-}
+import { requireSyncedUserId } from "@/lib/auth";
+import { toActionError } from "@/lib/errors";
+import { analysisSchema, jobDescriptionInput, type Analysis } from "@/lib/schemas";
 
 export async function analyzeResumeWithAI(
-  resumeId: string, 
+  resumeId: string,
   jobDescription: string,
   overrideResumeText?: string
-): Promise<ActionResponse<any>> {
-  // At least one AI provider must be configured
-  if (!process.env.GEMINI_API_KEY && !process.env.GROQ_API_KEY) {
-    return { success: false, error: "No AI API key is configured. Set GEMINI_API_KEY or GROQ_API_KEY in your environment." };
-  }
-
+): Promise<ActionResponse<Analysis & { id: string }>> {
   try {
-    const { userId } = await getUserIdAndSupabase();
-    if (!userId) return { success: false, error: "Unauthorized" };
+    const userId = await requireSyncedUserId();
+    const jd = jobDescriptionInput.parse(jobDescription);
 
     let resumeText = overrideResumeText;
 
-    if (!resumeText) {
-      const resume = await prisma.resume.findUnique({
-        where: { id: resumeId, userId }
-      });
-      if (!resume) {
-        return { success: false, error: "Resume not found" };
-      }
-      resumeText = resume.parsedText;
+    // Always confirm the resume belongs to this user, even when the caller
+    // supplies the text: resumeId is written to the analysis row.
+    const resume = await prisma.resume.findFirst({
+      where: { id: resumeId, userId },
+      select: { id: true, parsedText: true },
+    });
+    if (!resume) return { success: false, error: "Resume not found." };
+    if (!resumeText) resumeText = resume.parsedText;
+
+    if (!resumeText?.trim()) {
+      return {
+        success: false,
+        error:
+          "We couldn't read any text from that resume. Try re-uploading it, or paste the text manually.",
+      };
     }
 
     const prompt = `
     You are an expert ATS (Applicant Tracking System) and senior technical recruiter.
     Analyze the candidate's resume against the provided job description.
-    
+
     Return ONLY a JSON object matching this exact schema:
     {
       "jobTitle": string, // the job title/role extracted from the job description (e.g., "Software Engineering Intern")
@@ -72,30 +59,31 @@ export async function analyzeResumeWithAI(
     ${resumeText.substring(0, 10000)}
 
     --- JOB DESCRIPTION ---
-    ${jobDescription.substring(0, 10000)}
+    ${jd.substring(0, 10000)}
     `;
 
-    const result = await generateAIContent({ prompt, jsonMode: true });
-    console.log(`[analyzeResumeWithAI] Fulfilled by: ${result.provider}`);
-
-    const data = JSON.parse(result.text);
-
-    // Save analysis to DB
-    await prisma.jobAnalysis.create({
-      data: {
-        userId,
-        resumeId,
-        jobTitle: data.jobTitle || "Unknown Role",
-        company: data.company || "Unknown Company",
-        jobDescription,
-        matchScore: data.matchScore || 0,
-        analysisData: data
-      }
+    const { data } = await generateAIObject({
+      prompt,
+      schema: analysisSchema,
+      userId,
+      label: "analyze",
     });
 
-    return { success: true, data };
-  } catch (error: any) {
-    console.error("AI Analysis failed:", error);
-    return { success: false, error: `AI analysis failed: ${error.message || "Unknown error"}. Please check your API keys.` };
+    const saved = await prisma.jobAnalysis.create({
+      data: {
+        userId,
+        resumeId: resume.id,
+        jobTitle: data.jobTitle,
+        company: data.company,
+        jobDescription: jd,
+        matchScore: data.matchScore,
+        analysisData: data,
+      },
+      select: { id: true },
+    });
+
+    return { success: true, data: { ...data, id: saved.id } };
+  } catch (error) {
+    return toActionError(error, "The analysis failed. Please try again.");
   }
 }
