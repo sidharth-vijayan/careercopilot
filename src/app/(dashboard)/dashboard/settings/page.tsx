@@ -1,25 +1,29 @@
 import { getUserProfile } from "@/actions/user";
 import { SettingsClient } from "@/components/dashboard/settings-client";
 
+export const metadata = {
+  title: "Settings · CareerCopilot",
+};
+
 export default async function SettingsPage() {
   const res = await getUserProfile();
-  
-  if (!res.success) {
+
+  if (!res.success || !res.data) {
     return (
-      <div className="p-8 text-center text-muted-foreground">
-        Failed to load profile. Please refresh.
+      <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+        {res.error ?? "Failed to load your profile. Please refresh."}
       </div>
     );
   }
 
   return (
-    <div className="max-w-2xl">
-      <div className="mb-8">
+    <div className="max-w-3xl space-y-6">
+      <div>
         <h2 className="text-2xl font-bold tracking-tight text-foreground">
-          Profile Settings
+          Settings
         </h2>
         <p className="text-muted-foreground">
-          Manage your account settings and personal details.
+          Manage your details, usage and account.
         </p>
       </div>
 
