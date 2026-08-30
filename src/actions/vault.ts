@@ -1,42 +1,52 @@
 "use server";
 
-import { ActionResponse } from "@/types";
-import { generateAIContent } from "@/lib/ai-provider";
-import prisma from "@/lib/prisma";
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { revalidatePath } from "next/cache";
 
-async function getUserIdAndSupabase() {
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() { return cookieStore.getAll(); },
-        setAll() {},
-      },
-    }
-  );
-  const { data: { user } } = await supabase.auth.getUser();
-  return { userId: user?.id };
+import { ActionResponse } from "@/types";
+import { generateAIObject } from "@/lib/ai-provider";
+import prisma from "@/lib/prisma";
+import { requireSyncedUserId, requireWritableUserId } from "@/lib/auth";
+import { toActionError } from "@/lib/errors";
+import {
+  jobDescriptionInput,
+  tailoredResumeSchema,
+  uuidInput,
+  vaultItemInput,
+  type TailoredResumeData,
+} from "@/lib/schemas";
+
+export interface VaultItem {
+  id: string;
+  type: string;
+  title: string;
+  bulletPoints: string[];
+  createdAt: string;
 }
 
 // 🏦 CRUD: Get all Vault Items
-export async function getVaultItems(): Promise<ActionResponse<any[]>> {
+export async function getVaultItems(): Promise<ActionResponse<VaultItem[]>> {
   try {
-    const { userId } = await getUserIdAndSupabase();
-    if (!userId) return { success: false, error: "Unauthorized" };
+    const userId = await requireSyncedUserId();
 
     const items = await prisma.vaultItem.findMany({
       where: { userId },
-      orderBy: { createdAt: "desc" }
+      orderBy: { createdAt: "desc" },
     });
 
-    return { success: true, data: items };
-  } catch (error: any) {
-    console.error("Failed to get Vault items:", error);
-    return { success: false, error: "Failed to load Vault items." };
+    return {
+      success: true,
+      data: items.map((item) => ({
+        id: item.id,
+        type: item.type,
+        title: item.title,
+        bulletPoints: Array.isArray(item.bulletPoints)
+          ? (item.bulletPoints as string[])
+          : [],
+        createdAt: item.createdAt.toISOString(),
+      })),
+    };
+  } catch (error) {
+    return toActionError(error, "Failed to load Vault items.");
   }
 }
 
@@ -46,110 +56,95 @@ export async function saveVaultItem(
   type: "experience" | "project" | "skill",
   title: string,
   bulletPoints: string[]
-): Promise<ActionResponse<any>> {
+): Promise<ActionResponse<{ id: string }>> {
   try {
-    const { userId } = await getUserIdAndSupabase();
-    if (!userId) return { success: false, error: "Unauthorized" };
+    const userId = await requireWritableUserId();
+    const input = vaultItemInput.parse({ id, type, title, bulletPoints });
 
-    if (!title.trim()) {
-      return { success: false, error: "Title is required." };
+    if (input.id) {
+      // updateMany scoped by userId so another user's row can never be hit.
+      const { count } = await prisma.vaultItem.updateMany({
+        where: { id: input.id, userId },
+        data: {
+          type: input.type,
+          title: input.title,
+          bulletPoints: input.bulletPoints,
+        },
+      });
+      if (count === 0) return { success: false, error: "Vault item not found." };
+
+      revalidatePath("/dashboard/vault");
+      return { success: true, data: { id: input.id } };
     }
 
-    const filteredBullets = bulletPoints.filter(b => b.trim() !== "");
+    const created = await prisma.vaultItem.create({
+      data: {
+        userId,
+        type: input.type,
+        title: input.title,
+        bulletPoints: input.bulletPoints,
+      },
+      select: { id: true },
+    });
 
-    if (id) {
-      // Update
-      const existing = await prisma.vaultItem.findUnique({
-        where: { id, userId }
-      });
-      if (!existing) return { success: false, error: "Vault item not found." };
-
-      const updated = await prisma.vaultItem.update({
-        where: { id },
-        data: {
-          type,
-          title,
-          bulletPoints: filteredBullets
-        }
-      });
-      return { success: true, data: updated };
-    } else {
-      // Create
-      const created = await prisma.vaultItem.create({
-        data: {
-          userId,
-          type,
-          title,
-          bulletPoints: filteredBullets
-        }
-      });
-      return { success: true, data: created };
-    }
-  } catch (error: any) {
-    console.error("Failed to save Vault item:", error);
-    return { success: false, error: "Failed to save item." };
+    revalidatePath("/dashboard/vault");
+    return { success: true, data: created };
+  } catch (error) {
+    return toActionError(error, "Failed to save item.");
   }
 }
 
 // 🏦 CRUD: Delete Vault Item
 export async function deleteVaultItem(id: string): Promise<ActionResponse<void>> {
   try {
-    const { userId } = await getUserIdAndSupabase();
-    if (!userId) return { success: false, error: "Unauthorized" };
+    const userId = await requireWritableUserId();
+    const itemId = uuidInput.parse(id);
 
-    const existing = await prisma.vaultItem.findUnique({
-      where: { id, userId }
+    const { count } = await prisma.vaultItem.deleteMany({
+      where: { id: itemId, userId },
     });
-    if (!existing) return { success: false, error: "Vault item not found." };
+    if (count === 0) return { success: false, error: "Vault item not found." };
 
-    await prisma.vaultItem.delete({
-      where: { id }
-    });
-
+    revalidatePath("/dashboard/vault");
     return { success: true };
-  } catch (error: any) {
-    console.error("Failed to delete Vault item:", error);
-    return { success: false, error: "Failed to delete item." };
+  } catch (error) {
+    return toActionError(error, "Failed to delete item.");
   }
 }
 
 // ⚡ AI Tailoring Engine
 export async function tailorVaultWithAI(
   jobDescription: string
-): Promise<ActionResponse<any>> {
-  // At least one AI provider must be configured
-  if (!process.env.GEMINI_API_KEY && !process.env.GROQ_API_KEY) {
-    return { success: false, error: "No AI API key is configured. Set GEMINI_API_KEY or GROQ_API_KEY in your environment." };
-  }
-
+): Promise<ActionResponse<TailoredResumeData & { id: string }>> {
   try {
-    const { userId } = await getUserIdAndSupabase();
-    if (!userId) return { success: false, error: "Unauthorized" };
+    const userId = await requireWritableUserId();
+    const jd = jobDescriptionInput.parse(jobDescription);
 
     // 1. Fetch user's entire experience database (Vault)
-    const vaultItems = await prisma.vaultItem.findMany({
-      where: { userId }
-    });
+    const vaultItems = await prisma.vaultItem.findMany({ where: { userId } });
 
     if (vaultItems.length === 0) {
-      return { 
-        success: false, 
-        error: "Your Vault is currently empty! Please add your past experiences and skills in the 'The Vault' tab first." 
+      return {
+        success: false,
+        error:
+          "Your Vault is currently empty! Please add your past experiences and skills in the 'The Vault' tab first.",
       };
     }
 
     // 2. Prepare Vault content for the LLM
-    const vaultString = vaultItems.map(item => {
-      const bullets = Array.isArray(item.bulletPoints) 
-        ? (item.bulletPoints as string[]).map(b => `- ${b}`).join("\n") 
-        : "";
-      return `[ID: ${item.id}] TYPE: ${item.type.toUpperCase()} | TITLE: ${item.title}\n${bullets}`;
-    }).join("\n\n---\n\n");
+    const vaultString = vaultItems
+      .map((item) => {
+        const bullets = Array.isArray(item.bulletPoints)
+          ? (item.bulletPoints as string[]).map((b) => `- ${b}`).join("\n")
+          : "";
+        return `[ID: ${item.id}] TYPE: ${item.type.toUpperCase()} | TITLE: ${item.title}\n${bullets}`;
+      })
+      .join("\n\n---\n\n");
 
     const prompt = `
     You are an elite ATS optimizer and professional resume writer.
     Your task is to select and optimize (tailor) the most relevant bullet points from the candidate's "Vault" (Experience/Projects/Skills database) to match the target job description.
-    
+
     INSTRUCTIONS:
     1. Read the target Job Description to identify core keywords, required skills, and key responsibilities.
     2. Review the Candidate's Vault of past experiences, projects, and skills.
@@ -172,14 +167,7 @@ export async function tailorVaultWithAI(
           "tailoredBullets": string[] // optimized, tailored bullet points matching the JD
         }
       ],
-      "projects": [
-        {
-          "vaultItemId": string, // matching VaultItem ID
-          "title": string, // project title
-          "originalBullets": string[], // original bullet points selected
-          "tailoredBullets": string[] // optimized, tailored bullet points matching the JD
-        }
-      ],
+      "projects": [ /* same shape as experiences */ ],
       "skills": [
         {
           "category": string, // e.g. "Languages", "Frontend", "Backend", "Cloud & DevOps"
@@ -192,33 +180,31 @@ export async function tailorVaultWithAI(
     ${vaultString}
 
     --- JOB DESCRIPTION ---
-    ${jobDescription.substring(0, 10000)}
+    ${jd.substring(0, 10000)}
     `;
 
-    const result = await generateAIContent({ prompt, jsonMode: true });
-    console.log(`[tailorVaultWithAI] Fulfilled by: ${result.provider}`);
-
-    const tailoredResult = JSON.parse(result.text);
+    const { data } = await generateAIObject({
+      prompt,
+      schema: tailoredResumeSchema,
+      userId,
+      label: "tailor",
+    });
 
     // 3. Save the tailored draft to the database
     const savedDraft = await prisma.tailoredResume.create({
       data: {
         userId,
-        jobTitle: tailoredResult.jobTitle || "Tailored Position",
-        company: tailoredResult.company || "Target Company",
-        tailoredData: tailoredResult
-      }
+        jobTitle: data.jobTitle,
+        company: data.company,
+        tailoredData: data,
+      },
+      select: { id: true },
     });
 
-    return { 
-      success: true, 
-      data: {
-        id: savedDraft.id,
-        ...tailoredResult
-      } 
-    };
-  } catch (error: any) {
-    console.error("AI Tailoring failed:", error);
-    return { success: false, error: `AI tailoring failed: ${error.message || "Unknown error"}. Please check your API keys.` };
+    revalidatePath("/dashboard/tailored");
+
+    return { success: true, data: { ...data, id: savedDraft.id } };
+  } catch (error) {
+    return toActionError(error, "AI tailoring failed. Please try again.");
   }
 }
