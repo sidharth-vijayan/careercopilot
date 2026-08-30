@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Loader2,
   Sparkles,
@@ -12,12 +13,14 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { analyzeResumeWithAI } from "@/actions/analyze";
+import type { Analysis } from "@/lib/schemas";
 import { ResumeEditor } from "@/components/dashboard/resume-editor";
 import { AddApplicationModal } from "@/components/dashboard/add-application-modal";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { toast } from "@/lib/store/toast";
 import { updateResumeText } from "@/actions/resume";
 import { Skeleton } from "@/components/ui/skeleton";
+import { JdUrlImport } from "@/components/dashboard/jd-url-import";
 
 interface JobAnalyzerProps {
   resumeText: string;
@@ -26,10 +29,11 @@ interface JobAnalyzerProps {
 }
 
 export function JobAnalyzer({ resumeText: initialResumeText, resumeId, onReset }: JobAnalyzerProps) {
+  const router = useRouter();
   const [resumeText, setResumeText] = useState(initialResumeText);
   const [jobDescription, setJobDescription] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [results, setResults] = useState<any | null>(null);
+  const [results, setResults] = useState<(Analysis & { id: string }) | null>(null);
   const [error, setError] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [showTrackModal, setShowTrackModal] = useState(false);
@@ -45,8 +49,11 @@ export function JobAnalyzer({ resumeText: initialResumeText, resumeId, onReset }
 
     try {
       const response = await analyzeResumeWithAI(resumeId, jobDescription, overrideResumeText);
-      if (response.success) {
+      if (response.success && response.data) {
         setResults(response.data);
+        // Re-run the server layout so the header's remaining-quota chip
+        // reflects the credit this analysis just spent.
+        router.refresh();
         toast("Analysis Complete", {
           description: `Your ATS match score is ${response.data.matchScore}%`,
           type: "success",
@@ -175,6 +182,7 @@ export function JobAnalyzer({ resumeText: initialResumeText, resumeId, onReset }
             </Button>
           </div>
 
+          {showTrackModal && (
           <AddApplicationModal
             isOpen={showTrackModal}
             onClose={() => setShowTrackModal(false)}
@@ -184,6 +192,7 @@ export function JobAnalyzer({ resumeText: initialResumeText, resumeId, onReset }
               jobDescription: jobDescription,
             }}
           />
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -275,7 +284,7 @@ export function JobAnalyzer({ resumeText: initialResumeText, resumeId, onReset }
             </h3>
           </div>
           <div className="divide-y">
-            {results.actionableFeedback.map((item: any, i: number) => (
+            {results.actionableFeedback.map((item, i: number) => (
               <div
                 key={i}
                 className="p-6 hover:bg-muted/30 transition-colors"
@@ -307,6 +316,10 @@ export function JobAnalyzer({ resumeText: initialResumeText, resumeId, onReset }
         >
           Cancel
         </Button>
+      </div>
+
+      <div className="mb-3">
+        <JdUrlImport onImport={setJobDescription} />
       </div>
 
       <textarea

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Briefcase, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ApplicationStatus } from "@/types";
@@ -34,31 +34,21 @@ export function AddApplicationModal({
   editData,
   onSuccess,
 }: AddApplicationModalProps) {
-  const [company, setCompany] = useState("");
-  const [jobTitle, setJobTitle] = useState("");
-  const [status, setStatus] = useState<ApplicationStatus>("applied");
-  const [appliedDate, setAppliedDate] = useState(new Date().toISOString().substring(0, 10));
-  const [notes, setNotes] = useState("");
+  // Callers mount this only while it is open, so each open is a fresh mount and
+  // the initial state can be read straight from props. Seeding it from an
+  // effect instead meant an extra render pass every time the modal appeared.
+  const [company, setCompany] = useState(editData?.company ?? "");
+  const [jobTitle, setJobTitle] = useState(
+    editData?.jobTitle ?? prefill?.jobTitle ?? ""
+  );
+  const [status, setStatus] = useState<ApplicationStatus>(
+    editData?.status ?? "applied"
+  );
+  const [appliedDate, setAppliedDate] = useState(
+    (editData?.appliedAt ?? new Date().toISOString()).substring(0, 10)
+  );
+  const [notes, setNotes] = useState(editData?.notes ?? "");
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Reset form when isOpen changes
-  useEffect(() => {
-    if (isOpen) {
-      if (editData) {
-        setJobTitle(editData.jobTitle);
-        setCompany(editData.company);
-        setStatus(editData.status);
-        setAppliedDate(editData.appliedAt.substring(0, 10));
-        setNotes(editData.notes || "");
-      } else {
-        setJobTitle(prefill?.jobTitle || "");
-        setCompany("");
-        setStatus("applied");
-        setAppliedDate(new Date().toISOString().substring(0, 10));
-        setNotes("");
-      }
-    }
-  }, [isOpen, prefill, editData]);
 
   if (!isOpen) return null;
 
