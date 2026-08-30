@@ -100,7 +100,9 @@ See `.env.example`. `NEXT_PUBLIC_SUPABASE_URL`/`ANON_KEY`, `DATABASE_URL`,
 `DAILY_AI_LIMIT` (default 20), `DEMO_EMAIL`/`DEMO_PASSWORD`, and
 `SUPABASE_SERVICE_ROLE_KEY` (seed script only).
 
-Supabase needs a public storage bucket named **`resumes`**.
+Supabase needs a storage bucket named **`resumes`**. Keep it **private** — uploads
+and deletes run as the signed-in user under RLS, and the file is never read back
+(parsed text is stored on `Resume`), so no public URL is required.
 
 ## Commands
 

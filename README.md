@@ -168,8 +168,10 @@ npx prisma db push
 npm run dev
 ```
 
-In Supabase, create a **public storage bucket named `resumes`** — uploads fail
-without it.
+In Supabase, create a **private storage bucket named `resumes`** — uploads fail
+without it. Private is correct: uploads and deletes run as the signed-in user
+under RLS, and the file is never read back (the parsed text is stored in the
+database), so nothing needs a public URL.
 
 ### Optional: seed the read-only demo account
 
