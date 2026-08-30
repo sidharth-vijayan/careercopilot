@@ -2,205 +2,252 @@
 
 # 👨🏻‍💻 CareerCopilot
 
-### AI-Powered Career Intelligence Platform
+### Write your experience once. Tailor it to every job.
 
-**Parse resumes · Analyze job descriptions · Generate tailored applications · Track applications — all in one place.**
-
+[![CI](https://github.com/sidharth-vijayan/careercopilot/actions/workflows/ci.yml/badge.svg)](https://github.com/sidharth-vijayan/careercopilot/actions/workflows/ci.yml)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![Supabase](https://img.shields.io/badge/Supabase-Auth%20%26%20DB-3ECF8E?style=flat-square&logo=supabase)](https://supabase.com/)
-[![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?style=flat-square&logo=prisma)](https://www.prisma.io/)
-[![Google Gemini](https://img.shields.io/badge/Gemini-AI-4285F4?style=flat-square&logo=google)](https://deepmind.google/technologies/gemini/)
+[![Prisma](https://img.shields.io/badge/Prisma-7-2D3748?style=flat-square&logo=prisma)](https://www.prisma.io/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-38BDF8?style=flat-square&logo=tailwindcss)](https://tailwindcss.com/)
-[![Deployment](https://img.shields.io/badge/Vercel-Deploying%20Soon-000000?style=flat-square&logo=vercel)](https://vercel.com/)
+
+**[Live demo](#) · no signup required**
 
 </div>
 
 ---
 
-## 📌 Overview
+## The problem
 
-**CareerCopilot** is a full-stack, AI-augmented career assistant that helps job seekers work smarter — not harder. It parses resumes, dissects job descriptions, and uses Google Gemini to generate personalized application materials tailored to each role.
+Tailoring a resume per application is the advice everyone gives and nobody
+follows, because it means rewriting the same six bullet points from scratch for
+every posting. So people send the same generic resume to forty companies and get
+filtered out by keyword-matching ATS software before a human reads it.
 
-The project integrates modern web technologies — a Next.js 16 frontend, Supabase-backed authentication and database layer, Prisma ORM, and a Gemini-powered AI pipeline — demonstrating end-to-end full-stack development skills with real-world AI integration.
+## The approach
 
-> 🚧 **Status:** Feature-complete · Vercel deployment in final stage
+Keep the experience, not the document.
+
+You fill a **Vault** once — every role, project and skill, with all the bullet
+points, including the ones that would never fit on a one-page resume. Then for
+each job you paste the description, and CareerCopilot selects the relevant
+subset, rewrites each bullet around that posting's language, and gives you a
+document to send.
+
+```
+   Vault (write once)          Job description          Tailored resume
+  ┌──────────────────┐        ┌──────────────┐        ┌────────────────┐
+  │ 4 roles          │        │              │        │ 2 roles        │
+  │ 6 projects       │───────▶│  relevance   │───────▶│ 1 project      │
+  │ 40 bullets       │        │  + rewrite   │        │ 9 bullets,     │
+  │ 30 skills        │        │              │        │ ATS-keyworded  │
+  └──────────────────┘        └──────────────┘        └────────────────┘
+                                                       PDF · DOCX · link
+```
+
+Everything else in the app hangs off that same Vault: cover letters, interview
+questions, and the career chat all read from it, so they're grounded in your
+actual experience rather than generic advice.
 
 ---
 
-## ✨ Features
+## Features
 
-| Feature | Description |
+| | |
 |---|---|
-| 📄 **Resume Parsing** | Upload PDF or DOCX resumes; extract structured data using `pdf-parse` and `mammoth` |
-| 🔍 **JD Analysis** | Paste any job description and get key skill, role, and requirement breakdowns |
-| 🤖 **AI Cover Letter Generation** | Google Gemini generates tailored cover letters matching resume to JD |
-| 📊 **Match Score & Analytics** | Visual charts (Recharts) showing how well a resume aligns to a given role |
-| 📁 **Application Tracker** | Track job applications by status (applied / interviewing / offered / rejected) |
-| 📤 **PDF Export** | Export AI-generated documents as polished PDFs via `jspdf` |
-| 🔐 **Secure Auth** | Supabase SSR-compatible authentication with session management |
-| 🌙 **Dark Mode** | Full light/dark theme support via `next-themes` |
+| **The Vault** | Your experience bank — roles, projects and skills, stored once. |
+| **Instant Tailor** | Picks the relevant Vault items for a posting and rewrites the bullets around its keywords. Every draft is saved, with a side-by-side view of what changed. |
+| **Job match analysis** | ATS-style match score, matching vs missing skills, and specific fixes. |
+| **AI Improver** | Scores a resume, flags weak bullets by severity, and rewrites any bullet in four styles. |
+| **Interview Prep** | Generates the questions this posting would actually ask *you*, grades your answers, and rewrites them. |
+| **Cover letters** | Drafted from the Vault, saved and searchable. |
+| **Ask AI** | Career questions answered against your own resume and Vault. |
+| **Application tracker** | Pipeline by status, with notes and match scores. |
+| **Analytics** | Funnel, application cadence, match-score distribution, and the skill gaps that keep recurring. |
+| **Export & share** | ATS-safe PDF and DOCX, or a public read-only link at `/r/<id>`. |
 
 ---
 
-## 🛠️ Tech Stack
+## Engineering notes
 
-### Frontend
-- **Next.js 16** (App Router) with **React 19**
-- **TypeScript 5** — fully typed codebase
-- **Tailwind CSS v4** + **shadcn/ui** — component library
-- **Framer Motion** — page transitions and micro-animations
-- **Recharts** — data visualization for match analytics
-- **Zustand** — lightweight global state management
-- **React Hook Form + Zod** — form validation with schema enforcement
+The parts that were more interesting than CRUD.
 
-### Backend & Database
-- **Supabase** — PostgreSQL database + authentication (SSR-compatible)
-- **Prisma ORM** — type-safe database client and migrations
+### Two AI providers, one interface
 
-### AI / ML
-- **Google Gemini (`@google/genai`)** — LLM backbone for cover letter generation, JD parsing, resume feedback
+A single-provider AI feature is down whenever that provider is. Every AI call in
+the app goes through [`src/lib/ai-provider.ts`](src/lib/ai-provider.ts), which
+tries Gemini (`gemini-2.0-flash`) first and falls back to Groq
+(`llama-3.3-70b-versatile`) on failure. Groq is reached over its
+OpenAI-compatible REST endpoint, so the fallback path costs zero extra
+dependencies.
 
-### Document Processing
-- **`pdf-parse`** — extract text from uploaded PDF resumes
-- **`mammoth`** — parse DOCX files to structured content
-- **`jspdf`** — generate and export polished PDF documents
-- **`@napi-rs/canvas`** — server-side canvas rendering
+### Treating model output as untrusted input
 
-### Dev Tooling
-- **ESLint** (Next.js config) — code quality enforcement
-- **PostCSS** — CSS processing pipeline
+LLMs return JSON wrapped in markdown fences, prefixed with "Sure! Here's...",
+or shaped subtly wrong — a score as `"82"`, a severity of `"critical"` when the
+schema says `high`. A bare `JSON.parse` turns each of these into a 500.
 
----
-
-## 📁 Project Structure
+`generateAIObject` runs a four-stage ladder before giving up:
 
 ```
-careercopilot/
-├── prisma/                  # Database schema and migrations
-│   └── schema.prisma
-├── public/                  # Static assets
-├── src/
-│   ├── app/                 # Next.js App Router pages and layouts
-│   ├── components/          # Reusable UI components (shadcn/ui + custom)
-│   ├── lib/                 # Utility functions, Supabase client, AI helpers
-│   └── store/               # Zustand global state
-├── .gitignore
-├── components.json          # shadcn/ui config
-├── next.config.ts
-├── package.json
-├── prisma.config.ts
-└── tsconfig.json
+provider A → parse + validate
+   ↓ fails
+provider A + repair prompt (the validation errors are fed back to the model)
+   ↓ fails
+provider B → parse + validate
+   ↓ fails
+provider B + repair prompt        → typed AIError, handled by the caller
 ```
+
+Extraction ([`extract-json.ts`](src/lib/extract-json.ts)) strips fences and
+falls back to outermost-brace matching; validation
+([`schemas.ts`](src/lib/schemas.ts)) uses Zod schemas that are deliberately
+**lenient on AI output** — coercing `"82"` to `82`, clamping `140` to `100`,
+mapping unknown severities to `medium` — because rejecting a whole response over
+a coercible field just burns a retry. The same file's **user-input** schemas are
+strict, because that's the trust boundary.
+
+### Rate limiting on someone else's dime
+
+The deployment runs on my own API keys, so an open signup is an open invitation
+to drain them. [`quota.ts`](src/lib/quota.ts) enforces a per-user daily cap with
+two guarded `UPDATE`s — the increment is conditional on `count < limit`, so
+Postgres evaluates the check and the cap can't be exceeded by concurrent
+requests. Credits are consumed *before* the provider call, so a rejected request
+costs nothing.
+
+### Not fetching arbitrary URLs, carelessly
+
+The "import from a link" feature makes the server fetch a user-supplied URL,
+which is a textbook SSRF primitive. [`jd-import.ts`](src/actions/jd-import.ts)
+resolves each hostname and rejects private, loopback, link-local and
+carrier-grade-NAT ranges — including IPv4-mapped IPv6 — and follows redirects
+manually so every hop is re-validated rather than letting a public URL bounce to
+`169.254.169.254`.
+
+### Charts that survive their readers
+
+Every chart on the analytics page is single-series, so identity comes from axis
+labels rather than colour. Pipeline stages use an ordinal ramp of one hue,
+validated for monotone lightness and step separation in both themes. Status
+colours (green/red) are deliberately *not* used for the stage bars — that pair
+is near-indistinguishable with deuteranopia — so they appear only on tiles where
+a word carries the meaning. A table view is one click away.
 
 ---
 
-## 🚀 Getting Started
+## Tech stack
 
-### Prerequisites
+| Layer | Choice |
+|---|---|
+| Framework | Next.js 16 (App Router, Server Actions) + React 19 |
+| Language | TypeScript 5, strict |
+| Styling | Tailwind CSS v4 + shadcn/ui |
+| Auth | Supabase Auth (SSR cookies via `@supabase/ssr`) |
+| Database | Supabase Postgres via Prisma 7 |
+| AI | Google Gemini → Groq failover |
+| Docs | `pdf-parse`, `mammoth` (in), `jspdf`, `docx` (out) |
+| Charts | Recharts |
+| Testing | Vitest |
+| CI/CD | GitHub Actions → Vercel |
 
-- Node.js `>= 18`
-- A [Supabase](https://supabase.com/) project (free tier works)
-- A [Google AI Studio](https://aistudio.google.com/) API key for Gemini
+---
 
-### 1. Clone the Repository
+## Running locally
+
+**Prerequisites:** Node 22+, a Supabase project, and at least one AI API key
+([Gemini](https://aistudio.google.com/apikey) or
+[Groq](https://console.groq.com/keys) — both have free tiers).
 
 ```bash
 git clone https://github.com/sidharth-vijayan/careercopilot.git
 cd careercopilot
-```
-
-### 2. Install Dependencies
-
-```bash
 npm install
-```
-
-### 3. Set Up Environment Variables
-
-Create a `.env.local` file in the root:
-
-```env
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-
-# Google Gemini
-GOOGLE_GENERATIVE_AI_API_KEY=your_gemini_api_key
-
-# Database (Supabase Postgres connection string)
-DATABASE_URL=your_supabase_postgres_url
-```
-
-### 4. Set Up the Database
-
-```bash
-npx prisma generate
+cp .env.example .env.local     # then fill it in
 npx prisma db push
-```
-
-### 5. Run the Development Server
-
-```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+In Supabase, create a **public storage bucket named `resumes`** — uploads fail
+without it.
+
+### Optional: seed the read-only demo account
+
+```bash
+npm run seed:demo
+```
+
+Creates the account behind the "Try the live demo" button and fills it with
+realistic data. Requires `DEMO_EMAIL` and `DEMO_PASSWORD` in `.env.local`.
+
+### Commands
+
+```bash
+npm run dev        # dev server
+npm run build      # production build
+npm test           # unit tests
+npm run typecheck  # tsc --noEmit
+npm run lint       # eslint
+npm run seed:demo  # seed the demo account
+```
+
+### Docker
+
+```bash
+docker compose up --build
+docker compose exec app npx prisma db push   # first run only
+```
+
+Runs the app against a local Postgres; auth and storage still use your hosted
+Supabase project.
 
 ---
 
-## 🌐 Deployment
+## Architecture
 
-CareerCopilot is built to deploy on **Vercel** — Vercel deployment is currently in its final stage.
+```
+src/
+├── actions/         # Server Actions — one file per domain
+│   ├── analyze.ts       resume ↔ JD match analysis
+│   ├── vault.ts         Vault CRUD + the tailoring engine
+│   ├── interview.ts     question generation + answer grading
+│   ├── jd-import.ts     SSRF-guarded URL importer
+│   └── …
+├── lib/
+│   ├── ai-provider.ts   failover, repair-retry, schema validation
+│   ├── schemas.ts       Zod schemas (lenient out, strict in)
+│   ├── quota.ts         per-user daily AI cap
+│   ├── auth.ts          shared session/authorization helpers
+│   └── resume-document.ts  one layout → PDF and DOCX
+├── app/
+│   ├── (auth)/          login, signup
+│   ├── (dashboard)/     the product
+│   ├── r/[shareId]/     public read-only resume
+│   └── api/export/      PDF / DOCX download
+└── components/
+```
 
-Once live, the deployment link will be added here.
-
-**To deploy your own instance:**
-1. Push the repo to GitHub
-2. Import into [Vercel](https://vercel.com/new)
-3. Add all environment variables from `.env.local` in the Vercel dashboard
-4. Deploy
-
----
-
-## 🔮 Future Scope
-
-| Planned Enhancement | Description |
-|---|---|
-| 🐳 **Dockerization** | Containerize the full app for consistent local dev and self-hosting |
-| ⚙️ **CI/CD Pipeline** | GitHub Actions workflows for lint, build checks, and auto-deploy on push to `main` |
-| 🔔 **Job Alert Notifications** | Email/push notifications for application status changes |
-| 🧠 **Resume Improvement Suggestions** | AI-powered resume feedback and bullet-point rewrites |
-| 📊 **Analytics Dashboard** | Visual insights into application history and success rates |
-| 🔗 **LinkedIn / Job Board Integration** | Scrape or import JDs directly from LinkedIn, Naukri, etc. |
-| 🧪 **Testing Suite** | Unit and integration tests with Jest + Testing Library |
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Here's how to get started:
-
-1. Fork this repository
-2. Create a feature branch: `git checkout -b feature/your-feature-name`
-3. Commit your changes: `git commit -m 'feat: add your feature'`
-4. Push to the branch: `git push origin feature/your-feature-name`
-5. Open a Pull Request
-
-Please follow the [Conventional Commits](https://www.conventionalcommits.org/) standard for commit messages.
+Authorization lives in `lib/auth.ts` and is applied per action:
+`requireSyncedUserId` for reads, `requireWritableUserId` for writes (which also
+rejects the demo account). Every mutation is scoped by `userId` in the `WHERE`
+clause rather than checked after the fact, so a request for someone else's row
+affects zero rows instead of leaking one.
 
 ---
 
-## 📄 License
+## Status & roadmap
 
-This project is open-source and available under the [MIT License](LICENSE).
+Working and deployed. Not yet built:
+
+- [ ] Email notifications for follow-up reminders (needs a transactional email provider)
+- [ ] Multiple resume templates — one ATS-safe layout today
+- [ ] Persisted chat history — conversations are per-session
+- [ ] Pagination — list views cap at 25–50 rows
 
 ---
 
 <div align="center">
 
 Built by [Sidharth Vijayan](https://github.com/sidharth-vijayan)
-
-⭐ If you find this project useful, consider giving it a star!
 
 </div>
