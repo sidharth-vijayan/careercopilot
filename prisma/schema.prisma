@@ -7,75 +7,130 @@ datasource db {
 }
 
 model User {
-  id               String        @id @default(uuid())
-  email            String        @unique
-  name             String?
-  avatarUrl        String?
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
-  resumes          Resume[]
-  analyses         JobAnalysis[]
-  applications     Application[]
-  vaultItems       VaultItem[]
-  tailoredResumes  TailoredResume[]
+  id                String             @id @default(uuid())
+  email             String             @unique
+  name              String?
+  avatarUrl         String?
+  // Contact block printed on exported resumes. Optional: an empty field is
+  // omitted from the header rather than rendered as a placeholder.
+  phone             String?
+  location          String?
+  linkedinUrl       String?
+  githubUrl         String?
+  websiteUrl        String?
+  isDemo            Boolean            @default(false)
+  // Rolling daily AI quota. Reset lazily when aiCallsDate != today (UTC).
+  aiCallsDate       DateTime?
+  aiCallsCount      Int                @default(0)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  resumes           Resume[]
+  analyses          JobAnalysis[]
+  applications      Application[]
+  vaultItems        VaultItem[]
+  tailoredResumes   TailoredResume[]
+  coverLetters      CoverLetter[]
+  interviewSessions InterviewSession[]
 }
 
 model Resume {
-  id               String        @id @default(uuid())
-  userId           String
-  user             User          @relation(fields: [userId], references: [id])
-  originalName     String
-  fileUrl          String
-  parsedText       String        @db.Text
-  isDefault        Boolean       @default(false)
-  createdAt        DateTime      @default(now())
-  analyses         JobAnalysis[]
+  id           String        @id @default(uuid())
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  originalName String
+  fileUrl      String
+  parsedText   String        @db.Text
+  isDefault    Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+  analyses     JobAnalysis[]
+
+  @@index([userId])
 }
 
 model JobAnalysis {
-  id               String        @id @default(uuid())
-  userId           String
-  user             User          @relation(fields: [userId], references: [id])
-  resumeId         String
-  resume           Resume        @relation(fields: [resumeId], references: [id])
-  jobTitle         String
-  company          String
-  jobDescription   String        @db.Text
-  matchScore       Int
-  analysisData     Json          // Stores missing skills, heatmaps, ATS warnings, etc.
-  createdAt        DateTime      @default(now())
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resumeId       String
+  resume         Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  jobTitle       String
+  company        String
+  jobDescription String   @db.Text
+  matchScore     Int
+  analysisData   Json // Stores missing skills, heatmaps, ATS warnings, etc.
+  createdAt      DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([resumeId])
 }
 
 model Application {
-  id               String        @id @default(uuid())
-  userId           String
-  user             User          @relation(fields: [userId], references: [id])
-  jobTitle         String
-  company          String
-  status           String        // Enum: applied, interview, offer, rejected, saved
-  matchScore       Int?
-  jobDescription   String?       @db.Text
-  appliedAt        DateTime      @default(now())
-  notes            String?       @db.Text
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobTitle       String
+  company        String
+  status         String // Enum: applied, interview, offer, rejected, saved
+  matchScore     Int?
+  jobDescription String?  @db.Text
+  appliedAt      DateTime @default(now())
+  notes          String?  @db.Text
+
+  @@index([userId, appliedAt])
 }
 
 model VaultItem {
-  id               String        @id @default(uuid())
-  userId           String
-  user             User          @relation(fields: [userId], references: [id])
-  type             String        // "experience" | "project" | "skill"
-  title            String        // e.g. "Senior Software Engineer at TechCorp"
-  bulletPoints     Json          // Stores array of strings: string[]
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type         String // "experience" | "project" | "skill"
+  title        String // e.g. "Senior Software Engineer at TechCorp"
+  bulletPoints Json // Stores array of strings: string[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId, type])
 }
 
 model TailoredResume {
-  id               String        @id @default(uuid())
-  userId           String
-  user             User          @relation(fields: [userId], references: [id])
-  jobTitle         String
-  company          String
-  tailoredData     Json          // Stores tailored structure: experiences, projects, skills list
-  createdAt        DateTime      @default(now())
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobTitle     String
+  company      String
+  tailoredData Json // Stores tailored structure: experiences, projects, skills list
+  // Set when the user publishes this resume at /r/[shareId]. Null = private.
+  shareId      String?  @unique
+  createdAt    DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model CoverLetter {
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobTitle       String
+  company        String
+  jobDescription String   @db.Text
+  content        String   @db.Text
+  createdAt      DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model InterviewSession {
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobTitle       String
+  company        String
+  jobDescription String   @db.Text
+  // [{ id, category: "technical"|"behavioral", question, rationale,
+  //    answer?: string, feedback?: { score, strengths[], improvements[], rewritten } }]
+  questions      Json
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([userId, createdAt])
 }
