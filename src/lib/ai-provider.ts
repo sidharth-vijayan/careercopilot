@@ -1,21 +1,36 @@
 /**
- * Centralized AI Provider with automatic Groq fallback.
+ * Centralized AI provider with schema validation, repair-retry and failover.
  *
- * Flow:
- *   1. Try Google Gemini (gemini-2.0-flash) via @google/genai
- *   2. If Gemini fails (quota, rate-limit, invalid key, network error),
- *      automatically retry with Groq (llama-3.3-70b-versatile) via their
- *      OpenAI-compatible REST API — zero extra dependencies.
+ * Every AI call in this app goes through here, which buys three things a bare
+ * `fetch` to a model API does not:
  *
- * Both providers are instructed to return raw JSON so the caller can parse
- * the result identically regardless of which provider fulfilled the request.
+ *   1. **Failover** — Gemini (gemini-2.0-flash) is tried first; if it is down,
+ *      rate-limited or misconfigured, Groq (llama-3.3-70b-versatile) serves the
+ *      same prompt. One provider having a bad day is not an outage.
+ *   2. **Schema validation** — `generateAIObject` parses the response against a
+ *      Zod schema. LLMs return malformed or half-shaped JSON often enough that
+ *      trusting `JSON.parse` alone means shipping crashes to users.
+ *   3. **Repair-retry** — a response that parses but fails validation is sent
+ *      back to the model with its own errors attached, which recovers the large
+ *      majority of these without escalating to the fallback provider.
+ *
+ * Quota is consumed once per logical call, before any provider is contacted, so
+ * a rejected request never costs the user a credit.
  */
 
 import { GoogleGenAI } from "@google/genai";
+import type { z } from "zod";
+
+import { consumeAiCredit } from "@/lib/quota";
+import { extractJson } from "@/lib/extract-json";
+
+export { extractJson } from "@/lib/extract-json";
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
+
+export type AIProviderName = "gemini" | "groq";
 
 interface AIGenerateOptions {
   /** The full prompt to send to the model */
@@ -28,35 +43,19 @@ interface AIGenerateResult {
   /** The raw text response from the model */
   text: string;
   /** Which provider actually fulfilled the request */
-  provider: "gemini" | "groq";
+  provider: AIProviderName;
+}
+
+/** Raised when every provider and retry has been exhausted. */
+export class AIError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "AIError";
+  }
 }
 
 // ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-function isQuotaOrAuthError(error: any): boolean {
-  const msg = error?.message?.toLowerCase?.() ?? "";
-  const status = error?.status ?? error?.statusCode ?? 0;
-
-  return (
-    status === 429 ||
-    status === 403 ||
-    status === 400 ||
-    msg.includes("quota") ||
-    msg.includes("resource_exhausted") ||
-    msg.includes("rate") ||
-    msg.includes("api_key") ||
-    msg.includes("api key") ||
-    msg.includes("invalid") ||
-    msg.includes("permission") ||
-    msg.includes("billing") ||
-    msg.includes("exceeded")
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Gemini
+// Providers
 // ---------------------------------------------------------------------------
 
 async function generateWithGemini(opts: AIGenerateOptions): Promise<string> {
@@ -68,27 +67,22 @@ async function generateWithGemini(opts: AIGenerateOptions): Promise<string> {
   const response = await ai.models.generateContent({
     model: "gemini-2.0-flash",
     contents: opts.prompt,
-    config: opts.jsonMode !== false
-      ? { responseMimeType: "application/json" }
-      : undefined,
+    config:
+      opts.jsonMode !== false
+        ? { responseMimeType: "application/json" }
+        : undefined,
   });
 
-  if (!response.text) {
-    throw new Error("Gemini returned an empty response.");
-  }
-
+  if (!response.text) throw new Error("Gemini returned an empty response.");
   return response.text;
 }
 
-// ---------------------------------------------------------------------------
-// Groq (OpenAI-compatible REST — no extra packages)
-// ---------------------------------------------------------------------------
-
+/** Groq via its OpenAI-compatible REST endpoint — no extra dependency needed. */
 async function generateWithGroq(opts: AIGenerateOptions): Promise<string> {
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) throw new Error("GROQ_API_KEY is not set");
 
-  const body: Record<string, any> = {
+  const body: Record<string, unknown> = {
     model: "llama-3.3-70b-versatile",
     messages: [
       {
@@ -116,18 +110,30 @@ async function generateWithGroq(opts: AIGenerateOptions): Promise<string> {
   });
 
   if (!res.ok) {
-    const errBody = await res.text();
-    throw new Error(`Groq API error ${res.status}: ${errBody}`);
+    throw new Error(`Groq API error ${res.status}: ${await res.text()}`);
   }
 
   const data = await res.json();
   const text = data?.choices?.[0]?.message?.content;
-
-  if (!text) {
-    throw new Error("Groq returned an empty response.");
-  }
-
+  if (!text) throw new Error("Groq returned an empty response.");
   return text;
+}
+
+const PROVIDERS: Record<
+  AIProviderName,
+  { envKey: string; run: (o: AIGenerateOptions) => Promise<string> }
+> = {
+  gemini: { envKey: "GEMINI_API_KEY", run: generateWithGemini },
+  groq: { envKey: "GROQ_API_KEY", run: generateWithGroq },
+};
+
+/** Providers that actually have a key configured, in preference order. */
+export function availableProviders(): AIProviderName[] {
+  return (["gemini", "groq"] as const).filter((p) => !!process.env[PROVIDERS[p].envKey]);
+}
+
+export function isAIConfigured(): boolean {
+  return availableProviders().length > 0;
 }
 
 // ---------------------------------------------------------------------------
@@ -135,41 +141,106 @@ async function generateWithGroq(opts: AIGenerateOptions): Promise<string> {
 // ---------------------------------------------------------------------------
 
 /**
- * Generate AI content with automatic Gemini → Groq fallback.
+ * Generate raw text with automatic Gemini → Groq failover.
+ * Prefer `generateAIObject` when you expect structured output.
  *
- * @returns The model's text response and which provider was used.
- * @throws  Only if **both** providers fail.
+ * @throws AIError if every configured provider fails.
  */
 export async function generateAIContent(
   opts: AIGenerateOptions
 ): Promise<AIGenerateResult> {
-  // --- Attempt 1: Gemini ---
-  try {
-    const text = await generateWithGemini(opts);
-    return { text, provider: "gemini" };
-  } catch (geminiError: any) {
-    console.warn(
-      `[AI Provider] Gemini failed: ${geminiError.message ?? geminiError}. Attempting Groq fallback…`
+  const providers = availableProviders();
+  if (providers.length === 0) {
+    throw new AIError(
+      "No AI provider is configured. Set GEMINI_API_KEY or GROQ_API_KEY."
     );
+  }
 
-    // Only fallback on quota/auth/config errors. For truly unexpected errors
-    // (e.g. prompt too long), we still try Groq as a best effort.
-    // But if Groq key is also missing, we'll propagate the original error.
-    if (!process.env.GROQ_API_KEY) {
-      throw geminiError; // No fallback available
+  let lastError: unknown;
+
+  for (const name of providers) {
+    try {
+      const text = await PROVIDERS[name].run(opts);
+      return { text, provider: name };
+    } catch (error) {
+      lastError = error;
+      console.warn(
+        `[ai] ${name} failed: ${(error as Error)?.message ?? error}`
+      );
     }
   }
 
-  // --- Attempt 2: Groq ---
-  try {
-    const text = await generateWithGroq(opts);
-    return { text, provider: "groq" };
-  } catch (groqError: any) {
-    console.error(
-      `[AI Provider] Groq fallback also failed: ${groqError.message ?? groqError}`
-    );
-    throw new Error(
-      `Both AI providers failed. Gemini and Groq are unavailable. Last error: ${groqError.message}`
+  throw new AIError(
+    `All AI providers failed (${providers.join(", ")}). Last error: ${
+      (lastError as Error)?.message ?? lastError
+    }`
+  );
+}
+
+interface GenerateObjectOptions<T> {
+  prompt: string;
+  /** Zod schema the response must satisfy. */
+  schema: z.ZodType<T>;
+  /** When set, consumes one daily AI credit before calling any provider. */
+  userId?: string;
+  /** Short name used in logs, e.g. "analyze" or "cover-letter". */
+  label: string;
+}
+
+/**
+ * Generate a schema-validated object.
+ *
+ * Attempts, in order, until one yields a value satisfying `schema`:
+ *   provider A → provider A with repair prompt → provider B → provider B repair
+ *
+ * @throws QuotaError if the user's daily allowance is spent.
+ * @throws AIError    if no attempt produced a valid object.
+ */
+export async function generateAIObject<T>(
+  opts: GenerateObjectOptions<T>
+): Promise<{ data: T; provider: AIProviderName }> {
+  const providers = availableProviders();
+  if (providers.length === 0) {
+    throw new AIError(
+      "No AI provider is configured. Set GEMINI_API_KEY or GROQ_API_KEY."
     );
   }
+
+  // Charge before any network call so a refusal is free.
+  if (opts.userId) await consumeAiCredit(opts.userId);
+
+  let lastError: unknown;
+
+  for (const name of providers) {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const prompt =
+        attempt === 0
+          ? opts.prompt
+          : `${opts.prompt}\n\n--- CORRECTION ---\nYour previous response was rejected: ${
+              (lastError as Error)?.message ?? lastError
+            }\nReturn ONLY the corrected JSON object. No prose, no markdown fences.`;
+
+      try {
+        const text = await PROVIDERS[name].run({ prompt, jsonMode: true });
+        const parsed = opts.schema.parse(extractJson(text));
+        console.log(
+          `[ai] ${opts.label} fulfilled by ${name}${attempt > 0 ? " (after repair)" : ""}`
+        );
+        return { data: parsed, provider: name };
+      } catch (error) {
+        lastError = error;
+        console.warn(
+          `[ai] ${opts.label} attempt ${attempt + 1} on ${name} failed: ${
+            (error as Error)?.message ?? error
+          }`
+        );
+      }
+    }
+  }
+
+  throw new AIError(
+    `The AI could not produce a valid response for "${opts.label}" after ${
+      providers.length * 2
+    } attempts. Please try again.`
+  );
 }
