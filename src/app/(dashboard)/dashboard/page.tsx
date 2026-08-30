@@ -1,38 +1,40 @@
-"use client";
+import { getResumes } from "@/actions/resumes";
+import { getOverviewStats } from "@/actions/stats";
+import {
+  OnboardingChecklist,
+  OverviewClient,
+} from "@/components/dashboard/overview-client";
 
-import { useState } from "react";
-import { ResumeUpload } from "@/components/dashboard/resume-upload";
-import { JobAnalyzer } from "@/components/dashboard/job-analyzer";
+export const metadata = {
+  title: "Overview · CareerCopilot",
+};
 
-export default function DashboardPage() {
-  const [resumeState, setResumeState] = useState<{ text: string; id: string } | null>(null);
+export default async function DashboardPage() {
+  const [resumesResult, statsResult] = await Promise.all([
+    getResumes(),
+    getOverviewStats(),
+  ]);
 
-  const handleUploadSuccess = (text: string, id: string) => {
-    setResumeState({ text, id });
-  };
+  const resumes = resumesResult.success ? resumesResult.data ?? [] : [];
+  const stats = statsResult.success ? statsResult.data : undefined;
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight text-foreground">
-          {resumeState ? "Analyze Job Description" : "Welcome back"}
-        </h2>
-        <p className="text-muted-foreground">
-          {resumeState 
-            ? "Paste the job description below to see how well your resume matches." 
-            : "Upload a resume to get started with your analysis."}
-        </p>
-      </div>
-      
-      {!resumeState ? (
-        <ResumeUpload onUploadSuccess={handleUploadSuccess} />
-      ) : (
-        <JobAnalyzer 
-          resumeText={resumeState.text} 
-          resumeId={resumeState.id}
-          onReset={() => setResumeState(null)} 
+      {stats && (
+        <OnboardingChecklist
+          hasResume={stats.resumeCount > 0}
+          vaultCount={stats.vaultCount}
+          hasAnalysis={stats.analysisCount > 0}
         />
       )}
+
+      {!resumesResult.success && (
+        <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+          {resumesResult.error}
+        </div>
+      )}
+
+      <OverviewClient resumes={resumes} />
     </div>
   );
 }
