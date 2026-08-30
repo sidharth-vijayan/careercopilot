@@ -13,6 +13,14 @@ RUN npm ci
 # Copy source
 COPY . .
 
+# NEXT_PUBLIC_* values are inlined into the client bundle at build time, so they
+# must be present here — supplying them only at runtime leaves the browser with
+# `undefined` and auth silently fails. Passed via build args from compose.
+ARG NEXT_PUBLIC_SUPABASE_URL
+ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
+ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
+
 # Generate Prisma client and build Next.js application
 RUN npx prisma generate
 RUN npm run build

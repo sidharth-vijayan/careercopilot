@@ -1,0 +1,56 @@
+# Local development stack: the app plus its own Postgres.
+#
+#   docker compose up --build
+#
+# Auth and file storage still use your hosted Supabase project (set
+# NEXT_PUBLIC_SUPABASE_URL / ANON_KEY in .env.local) — only the application
+# database is local here, so you can develop without touching production data.
+#
+# First run, in another terminal:
+#   docker compose exec app npx prisma db push
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: careercopilot
+      POSTGRES_PASSWORD: careercopilot
+      POSTGRES_DB: careercopilot
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      # The app's entrypoint runs migrations immediately, so it must not start
+      # until Postgres is actually accepting connections.
+      test: ["CMD-SHELL", "pg_isready -U careercopilot -d careercopilot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://careercopilot:careercopilot@db:5432/careercopilot
+      DIRECT_URL: postgresql://careercopilot:careercopilot@db:5432/careercopilot
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      DAILY_AI_LIMIT: ${DAILY_AI_LIMIT:-20}
+      DEMO_EMAIL: ${DEMO_EMAIL:-}
+      DEMO_PASSWORD: ${DEMO_PASSWORD:-}
+
+volumes:
+  postgres-data:
