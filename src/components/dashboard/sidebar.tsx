@@ -2,59 +2,75 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, FileText, Briefcase, Settings, Database, Sparkles, MessageSquarePlus, Wand2 } from "lucide-react";
+import { MessageSquarePlus } from "lucide-react";
+
 import { BrandIcon } from "@/components/brand-icon";
+import { NAV_SECTIONS, isNavItemActive } from "@/components/dashboard/nav-items";
 
-const navigation = [
-  { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
-  { name: "The Vault 🏦", href: "/dashboard/vault", icon: Database },
-  { name: "Instant Tailor ⚡", href: "/dashboard/tailor", icon: Sparkles },
-  { name: "AI Improver 📝", href: "/dashboard/improve", icon: Wand2 },
-  { name: "Resumes", href: "/dashboard/resumes", icon: FileText },
-  { name: "Applications", href: "/dashboard/applications", icon: Briefcase },
-  { name: "Settings", href: "/dashboard/settings", icon: Settings },
-];
-
+/**
+ * Desktop sidebar. Hidden below `md`, where `MobileNav` takes over — the two
+ * render from the same NAV_SECTIONS list.
+ */
 export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <div className="flex h-full w-64 flex-col border-r bg-card px-4 py-6 hidden md:flex">
-      <Link href="/" className="flex items-center gap-2 px-2 mb-8">
-        <BrandIcon size="sm" />
-        <span className="font-bold text-xl tracking-tight text-foreground">CareerCopilot</span>
-      </Link>
-      <nav className="flex-1 space-y-1">
-        {navigation.map((item) => {
-          const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
-          return (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                isActive
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              }`}
-            >
-              <item.icon className={`h-5 w-5 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
-              {item.name}
-            </Link>
-          );
-        })}
+    <aside className="hidden h-full w-64 shrink-0 flex-col border-r bg-card md:flex">
+      <div className="px-4 py-6">
+        <Link href="/" className="flex items-center gap-2 px-2">
+          <BrandIcon size="sm" />
+          <span className="text-xl font-bold tracking-tight text-foreground">
+            CareerCopilot
+          </span>
+        </Link>
+      </div>
+
+      <nav className="flex-1 space-y-6 overflow-y-auto px-4 pb-4" aria-label="Main">
+        {NAV_SECTIONS.map((section, i) => (
+          <div key={section.label ?? `section-${i}`} className="space-y-1">
+            {section.label && (
+              <h2 className="px-3 pb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">
+                {section.label}
+              </h2>
+            )}
+            {section.items.map((item) => {
+              const isActive = isNavItemActive(item.href, pathname);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-current={isActive ? "page" : undefined}
+                  className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                    isActive
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  }`}
+                >
+                  <item.icon
+                    className={`h-[18px] w-[18px] shrink-0 ${
+                      isActive ? "text-primary" : "text-muted-foreground"
+                    }`}
+                    aria-hidden="true"
+                  />
+                  {item.name}
+                </Link>
+              );
+            })}
+          </div>
+        ))}
       </nav>
-      
-      <div className="mt-auto pt-6 border-t">
-        <a 
+
+      <div className="border-t p-4">
+        <a
           href="mailto:feedback@careercopilot.app?subject=Feedback%20%2F%20Feature%20Request"
           target="_blank"
           rel="noreferrer"
-          className="flex items-center justify-center gap-2 w-full rounded-lg bg-primary/10 px-3 py-2.5 text-sm font-medium text-primary hover:bg-primary/20 transition-colors"
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary/10 px-3 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary/20"
         >
-          <MessageSquarePlus className="h-4 w-4" />
+          <MessageSquarePlus className="h-4 w-4" aria-hidden="true" />
           Report Bug / Suggest Feature
         </a>
       </div>
-    </div>
+    </aside>
   );
 }
