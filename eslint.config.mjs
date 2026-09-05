@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Local Python venv for the Strix scanner (bundles minified JS).
+    ".strix/**",
   ]),
 ]);
 

@@ -44,3 +44,7 @@ next-env.d.ts
 
 # The template belongs in the repo; the real files never do.
 !.env.example
+
+# strix security scanner: local venv + scan output
+/.strix/venv/
+/strix_runs/

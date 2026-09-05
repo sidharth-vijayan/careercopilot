@@ -114,15 +114,20 @@ npx prisma db push     # apply schema changes
 
 ---
 
-## Known gaps
+## Known gaps / future improvements
 
-1. No pagination — lists cap at 25–50 rows.
-2. Chat history is per-session, not persisted (no model for it).
-3. One resume export template.
-4. No email notifications (needs a transactional provider).
-5. `sample-report` page is static/hardcoded.
-6. `improve` and `applications` pages still fetch client-side; the rest are
-   server-rendered.
+Deliberate scope cuts, not broken code. Add when the pain is real, not before.
+
+1. **Export templates** — only one layout in `src/lib/resume-document.ts`. Add
+   more layouts here; ~1h each. Nice-to-have.
+2. **Chat history** — per-session only. Needs a `ChatMessage` model + migration +
+   load/save wiring. ~2h. Do it if chat gets heavy use.
+3. **Pagination** — lists cap at 25–50 rows. Cursor pagination. Defer until a
+   real list actually exceeds the cap.
+4. **`sample-report`** — static/hardcoded landing showcase. Fine as-is; only wire
+   it to real demo data if the hardcoding ever misleads.
+5. **Email notifications** — none. No compelling trigger for a synchronous
+   web app the owner opens directly; treat as YAGNI unless a real need appears.
 
 ## History worth knowing
 
