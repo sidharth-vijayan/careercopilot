@@ -209,6 +209,8 @@ export async function generateAIObject<T>(
   // Charge before any network call so a refusal is free.
   if (opts.userId) await consumeAiCredit(opts.userId);
 
+  const startedAt = Date.now();
+
   let lastError: unknown;
 
   for (const name of providers) {
@@ -224,7 +226,14 @@ export async function generateAIObject<T>(
         const text = await PROVIDERS[name].run({ prompt, jsonMode: true });
         const parsed = opts.schema.parse(extractJson(text));
         console.log(
-          `[ai] ${opts.label} fulfilled by ${name}${attempt > 0 ? " (after repair)" : ""}`
+          `[ai] ${JSON.stringify({
+            ok: true,
+            label: opts.label,
+            provider: name,
+            repaired: attempt > 0,
+            failedOver: name !== providers[0],
+            ms: Date.now() - startedAt,
+          })}`
         );
         return { data: parsed, provider: name };
       } catch (error) {
@@ -237,6 +246,19 @@ export async function generateAIObject<T>(
       }
     }
   }
+
+  // Same shape as the success record, so one log query over `[ai]` lines
+  // yields a success rate and a failover rate rather than only the calls that
+  // worked. Without this the exhausted case is invisible to counting.
+  console.error(
+    `[ai] ${JSON.stringify({
+      ok: false,
+      label: opts.label,
+      attempts: providers.length * 2,
+      ms: Date.now() - startedAt,
+      lastError: (lastError as Error)?.message ?? String(lastError),
+    })}`
+  );
 
   throw new AIError(
     `The AI could not produce a valid response for "${opts.label}" after ${
