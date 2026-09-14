@@ -11,7 +11,7 @@
 [![Prisma](https://img.shields.io/badge/Prisma-7-2D3748?style=flat-square&logo=prisma)](https://www.prisma.io/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-38BDF8?style=flat-square&logo=tailwindcss)](https://tailwindcss.com/)
 
-**[Live demo](#) · no signup required**
+**[Live demo](https://recutcv.vercel.app)** · no signup required
 
 </div>
 
