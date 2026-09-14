@@ -14,17 +14,19 @@ services:
     image: postgres:17-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: recut
-      POSTGRES_PASSWORD: recut
-      POSTGRES_DB: recut
+      POSTGRES_USER: ${POSTGRES_USER:-recut}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-recut}
     ports:
-      - "5432:5432"
+      # Loopback only. Published on all interfaces, this would expose the
+      # database to everything on the local network.
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
       # The app's entrypoint runs migrations immediately, so it must not start
       # until Postgres is actually accepting connections.
-      test: ["CMD-SHELL", "pg_isready -U recut -d recut"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-recut} -d ${POSTGRES_DB:-recut}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -42,8 +44,8 @@ services:
     ports:
       - "3000:3000"
     environment:
-      DATABASE_URL: postgresql://recut:recut@db:5432/recut
-      DIRECT_URL: postgresql://recut:recut@db:5432/recut
+      DATABASE_URL: postgresql://${POSTGRES_USER:-recut}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-recut}
+      DIRECT_URL: postgresql://${POSTGRES_USER:-recut}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-recut}
       NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
       GEMINI_API_KEY: ${GEMINI_API_KEY}

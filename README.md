@@ -201,7 +201,9 @@ docker compose exec app npx prisma db push   # first run only
 ```
 
 Runs the app against a local Postgres; auth and storage still use your hosted
-Supabase project.
+Supabase project. Compose reads `.env`, and `POSTGRES_PASSWORD` has no default
+— set it there, so no database credential is ever committed. The database is
+published on loopback only.
 
 ---
 
