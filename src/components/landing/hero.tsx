@@ -52,7 +52,7 @@ export function Hero() {
           Stop rewriting your
           <br />
           resume{" "}
-          <span className="bg-gradient-to-r from-primary to-blue-400 bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-primary to-blue-700 bg-clip-text text-transparent dark:to-blue-400">
             from scratch
           </span>
         </motion.h1>
@@ -106,7 +106,7 @@ export function Hero() {
         </motion.div>
 
         <p className="mt-4 text-sm text-muted-foreground">
-          No signup needed for the demo — real data, read-only.
+          No signup needed for the demo — a real working account, read-only.
         </p>
 
         {error && (

@@ -289,7 +289,10 @@ export function ApplicationsClient({ initialApplications }: ApplicationsClientPr
                       className="text-muted-foreground hover:text-primary p-2 h-auto"
                       onClick={() => setEditingApp(app)}
                     >
-                      <Pencil className="h-4 w-4" />
+                      <span className="sr-only">
+                        Edit application: {app.jobTitle} at {app.company}
+                      </span>
+                      <Pencil className="h-4 w-4" aria-hidden="true" />
                     </Button>
                     <Button
                       variant="ghost"
@@ -297,7 +300,10 @@ export function ApplicationsClient({ initialApplications }: ApplicationsClientPr
                       className="text-muted-foreground hover:text-destructive p-2 h-auto"
                       onClick={() => handleDelete(app.id)}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <span className="sr-only">
+                        Delete application: {app.jobTitle} at {app.company}
+                      </span>
+                      <Trash2 className="h-4 w-4" aria-hidden="true" />
                     </Button>
                   </div>
                 </div>

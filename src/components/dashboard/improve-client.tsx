@@ -204,7 +204,7 @@ export function ImproveClient({ initialResumes }: ImproveClientProps) {
       case "medium":
         return <AlertTriangle className="h-4 w-4 text-yellow-500 flex-shrink-0" />;
       default:
-        return <Info className="h-4 w-4 text-blue-400 flex-shrink-0" />;
+        return <Info className="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0" aria-hidden="true" />;
     }
   };
 
@@ -660,10 +660,11 @@ function BulletRewriterSection({
 
       <div className="p-6 space-y-4">
         <div>
-          <label className="text-sm font-medium text-foreground mb-1.5 block">
+          <label htmlFor="improve-bullet" className="text-sm font-medium text-foreground mb-1.5 block">
             Your Bullet Point
           </label>
           <textarea
+            id="improve-bullet"
             className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-y"
             placeholder="e.g. Worked on building the frontend of the company website using React..."
             value={bulletInput}
@@ -672,11 +673,12 @@ function BulletRewriterSection({
         </div>
 
         <div>
-          <label className="text-sm font-medium text-foreground mb-1.5 block">
+          <label htmlFor="improve-context" className="text-sm font-medium text-foreground mb-1.5 block">
             Context{" "}
             <span className="text-muted-foreground font-normal">(optional)</span>
           </label>
           <input
+            id="improve-context"
             type="text"
             className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             placeholder="e.g. Software Engineer at Google, building internal tools"
@@ -724,10 +726,11 @@ function BulletRewriterSection({
                 {/* Inline vault save dialog */}
                 {showVaultDialog === i && (
                   <div className="rounded-lg border bg-card p-3 space-y-2 animate-in fade-in duration-200">
-                    <label className="text-xs font-medium text-foreground">
+                    <label htmlFor={`vault-title-${i}`} className="text-xs font-medium text-foreground">
                       Vault Item Title
                     </label>
                     <input
+                      id={`vault-title-${i}`}
                       type="text"
                       className="flex h-8 w-full rounded-md border border-input bg-transparent px-2 py-1 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                       placeholder="e.g. SWE at Google — Frontend"

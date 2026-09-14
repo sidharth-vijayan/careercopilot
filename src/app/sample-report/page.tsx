@@ -21,9 +21,13 @@ import { BrandIcon } from "@/components/brand-icon";
 export default function SampleReportPage() {
   const [activeTab, setActiveTab] = useState<"analysis" | "resume">("analysis");
 
-  // Sample Resume Text used for mock report
-  const sampleResumeText = `SIDHARTH VIJAYAN
-sidharth@example.com | Singapore | linkedin.com/in/sidharthv
+  // Invented resume for an invented candidate, driving a hardcoded report.
+  //
+  // This used to carry the site owner's real name over employment history that
+  // never happened — a fabricated credential document, published, under a real
+  // identity. Keep the persona obviously fictional.
+  const sampleResumeText = `ALEX SAMPLE (fictional example candidate)
+alex@example.com | Singapore | linkedin.com/in/example
 
 PROFESSIONAL SUMMARY
 Senior Software Engineer with 6+ years of experience building high-performance, scalable web applications. Expert in TypeScript, React, and Node.js with strong cloud computing skills (AWS) and modern containerization practices. Passionate about system performance, developer experience, and product excellence.
@@ -98,7 +102,10 @@ Requirements:
         {/* Top Banner Alert */}
         <div className="bg-primary/5 border-b border-primary/10 py-3 text-center text-sm font-medium text-primary flex items-center justify-center gap-2 px-4">
           <Sparkles className="h-4 w-4 shrink-0" />
-          <span>Interactive Product Tour: Reviewing a prefilled sample resume analysis.</span>
+          <span>
+            Product tour — a fictional candidate and a made-up report, shown to
+            illustrate the layout. Nothing here is a real person or a real result.
+          </span>
         </div>
 
         <div className="container mx-auto px-4 md:px-8 pt-10">
@@ -115,7 +122,9 @@ Requirements:
                   Sample Compatibility Report
                 </h1>
                 <p className="text-muted-foreground mt-2 text-base max-w-2xl">
-                  Analyze your resume against any job description to discover instant ATS score improvements, target keywords, and actionable AI recommendations.
+                  Compare a resume against a job description to see a match score,
+                  the keywords the posting leans on, and what the model suggests
+                  changing. The numbers below are illustrative, not measured.
                 </p>
               </div>
               <Link href="/signup">
@@ -226,7 +235,7 @@ Requirements:
                         Executive Summary
                       </h3>
                       <p className="text-muted-foreground text-base leading-relaxed">
-                        Sidharth demonstrates exceptional alignment with core full stack competencies, including comprehensive experience in <strong>TypeScript</strong>, <strong>React</strong>, and <strong>Node.js</strong>. Cloud architecture and infrastructure containerization (Docker) are solid. 
+                        This candidate shows strong alignment with the core full stack competencies, including comprehensive experience in <strong>TypeScript</strong>, <strong>React</strong>, and <strong>Node.js</strong>. Cloud architecture and infrastructure containerization (Docker) are solid. 
                       </p>
                       <p className="text-muted-foreground text-base leading-relaxed mt-3">
                         However, the target description emphasizes <strong>Next.js (App Router & Server Components)</strong> and <strong>Kubernetes</strong> container orchestration. Integrating references to these technologies, or expanding on caching concepts (Redis), will highly elevate ATS parsing and match viability.
@@ -248,8 +257,8 @@ Requirements:
                         <CheckCircle2 className="h-5 w-5 text-green-500 mr-2 shrink-0" />
                         Matching Skills ({10})
                       </span>
-                      <span className="text-xs bg-green-500/10 text-green-600 dark:text-green-400 px-2 py-0.5 rounded-full font-semibold">
-                        ATS Passed
+                      <span className="text-xs bg-green-500/10 text-green-700 dark:text-green-400 px-2 py-0.5 rounded-full font-semibold">
+                        Found in resume
                       </span>
                     </h3>
                     <div className="flex flex-wrap gap-2">

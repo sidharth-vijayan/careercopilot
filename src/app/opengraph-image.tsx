@@ -1,7 +1,8 @@
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
-export const alt = "CareerCopilot - Land your dream job with AI precision";
+export const alt =
+  "CareerCopilot — write your experience once, then tailor it to every job.";
 export const size = {
   width: 1200,
   height: 630,
@@ -87,8 +88,8 @@ export default async function Image() {
             margin: 0,
           }}
         >
-          Land your dream job with AI precision. Automatically tailor resumes and
-          track applications.
+          Write your experience once. Tailor it to every job, and track where it
+          went.
         </p>
 
         <div
@@ -105,7 +106,7 @@ export default async function Image() {
             textTransform: "uppercase",
           }}
         >
-          100% Free Forever
+          Free · No card required
         </div>
       </div>
     ),

@@ -55,7 +55,7 @@ export function JobAnalyzer({ resumeText: initialResumeText, resumeId, onReset }
         // reflects the credit this analysis just spent.
         router.refresh();
         toast("Analysis Complete", {
-          description: `Your ATS match score is ${response.data.matchScore}%`,
+          description: `Your match score is ${response.data.matchScore}%`,
           type: "success",
         });
       } else {
@@ -198,7 +198,7 @@ export function JobAnalyzer({ resumeText: initialResumeText, resumeId, onReset }
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="md:col-span-1 rounded-xl border bg-card p-6 flex flex-col items-center justify-center shadow-sm">
             <h3 className="text-lg font-medium text-muted-foreground mb-4">
-              ATS Match Score
+              Match score
             </h3>
             <div className="h-48 w-48 relative">
               <ResponsiveContainer width={192} height={192}>
@@ -305,7 +305,7 @@ export function JobAnalyzer({ resumeText: initialResumeText, resumeId, onReset }
   return (
     <div className="w-full max-w-3xl mx-auto mt-8 bg-card rounded-xl border p-6 shadow-sm">
       <div className="flex items-center justify-between mb-4">
-        <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+        <label htmlFor="analyzer-jd" className="text-sm font-medium leading-none">
           Paste the Job Description
         </label>
         <Button
@@ -323,6 +323,7 @@ export function JobAnalyzer({ resumeText: initialResumeText, resumeId, onReset }
       </div>
 
       <textarea
+        id="analyzer-jd"
         className="flex min-h-[200px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-y mb-4"
         placeholder="e.g. We are looking for a Senior Software Engineer with 5+ years of experience in React, Node.js..."
         value={jobDescription}

@@ -112,6 +112,8 @@ export function CoverLetterClient({ letters }: { letters: SavedCoverLetter[] }) 
 
           <p className="mt-2 text-center text-xs text-muted-foreground">
             Written from your Vault, so fill that in first for the best results.
+            It is a draft: the model can overstate or invent a detail, so read it
+            before you send it.
           </p>
         </div>
 

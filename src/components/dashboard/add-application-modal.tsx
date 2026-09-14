@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Briefcase, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ApplicationStatus } from "@/types";
@@ -49,6 +49,17 @@ export function AddApplicationModal({
   );
   const [notes, setNotes] = useState(editData?.notes ?? "");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Escape closes the dialog, matching the mobile drawer. Without it the only
+  // way out with a keyboard was to tab all the way to Cancel.
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -102,24 +113,34 @@ export function AddApplicationModal({
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
+        aria-hidden="true"
       />
 
       {/* Modal */}
-      <div className="relative w-full max-w-lg mx-4 rounded-xl border bg-card p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="application-modal-title"
+        className="relative w-full max-w-lg mx-4 rounded-xl border bg-card p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+      >
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-            <Briefcase className="h-5 w-5 text-primary" />
+          <h3
+            id="application-modal-title"
+            className="text-lg font-semibold text-foreground flex items-center gap-2"
+          >
+            <Briefcase className="h-5 w-5 text-primary" aria-hidden="true" />
             {editData ? "Edit Application" : "Track Application"}
           </h3>
           <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
-            <X className="h-4 w-4" />
+            <span className="sr-only">Close dialog</span>
+            <X className="h-4 w-4" aria-hidden="true" />
           </Button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Job Title — auto-filled */}
           <div>
-            <label className="text-sm font-medium text-foreground mb-1.5 block">
+            <label htmlFor="app-job-title" className="text-sm font-medium text-foreground mb-1.5 block">
               Job Title
               {prefill?.jobTitle && (
                 <span className="ml-2 text-xs text-primary font-normal">
@@ -128,6 +149,7 @@ export function AddApplicationModal({
               )}
             </label>
             <input
+              id="app-job-title"
               type="text"
               value={jobTitle}
               onChange={(e) => setJobTitle(e.target.value)}
@@ -139,10 +161,11 @@ export function AddApplicationModal({
 
           {/* Company Name */}
           <div>
-            <label className="text-sm font-medium text-foreground mb-1.5 block">
+            <label htmlFor="app-company" className="text-sm font-medium text-foreground mb-1.5 block">
               Company Name
             </label>
             <input
+              id="app-company"
               type="text"
               value={company}
               onChange={(e) => setCompany(e.target.value)}
@@ -155,16 +178,18 @@ export function AddApplicationModal({
 
           {/* Status */}
           <div>
-            <label className="text-sm font-medium text-foreground mb-1.5 block">
+            <span className="text-sm font-medium text-foreground mb-1.5 block" id="app-status-label">
               Status
-            </label>
-            <div className="flex flex-wrap gap-2">
+            </span>
+            <div className="flex flex-wrap gap-2" role="radiogroup" aria-labelledby="app-status-label">
               {statusOptions.map((opt) => (
                 <button
                   key={opt.value}
                   type="button"
+                  role="radio"
+                  aria-checked={status === opt.value}
                   onClick={() => setStatus(opt.value)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                     status === opt.value
                       ? "bg-primary text-primary-foreground border-primary"
                       : "bg-transparent text-muted-foreground border-border hover:border-foreground hover:text-foreground"
@@ -179,11 +204,15 @@ export function AddApplicationModal({
           {/* ATS Score — read only if present */}
           {prefill?.matchScore !== undefined && (
             <div>
-              <label className="text-sm font-medium text-foreground mb-1.5 block">
-                ATS Match Score
-              </label>
+              <span className="text-sm font-medium text-foreground mb-1.5 block">
+                Match score
+              </span>
               <div className="flex items-center gap-2">
-                <div className="h-2 flex-1 rounded-full bg-muted overflow-hidden">
+                <div
+                  className="h-2 flex-1 rounded-full bg-muted overflow-hidden"
+                  role="img"
+                  aria-label={`Match score ${prefill.matchScore} percent`}
+                >
                   <div
                     className="h-full rounded-full bg-primary transition-all"
                     style={{ width: `${prefill.matchScore}%` }}
@@ -198,10 +227,11 @@ export function AddApplicationModal({
 
           {/* Applied Date */}
           <div>
-            <label className="text-sm font-medium text-foreground mb-1.5 block">
+            <label htmlFor="app-applied-date" className="text-sm font-medium text-foreground mb-1.5 block">
               Applied Date
             </label>
             <input
+              id="app-applied-date"
               type="date"
               value={appliedDate}
               onChange={(e) => setAppliedDate(e.target.value)}
@@ -212,10 +242,11 @@ export function AddApplicationModal({
 
           {/* Notes */}
           <div>
-            <label className="text-sm font-medium text-foreground mb-1.5 block">
+            <label htmlFor="app-notes" className="text-sm font-medium text-foreground mb-1.5 block">
               Notes <span className="text-muted-foreground font-normal">(optional)</span>
             </label>
             <textarea
+              id="app-notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Any notes about this application..."
@@ -229,7 +260,7 @@ export function AddApplicationModal({
               Cancel
             </Button>
             <Button type="submit" className="flex-1" disabled={!company.trim() || !jobTitle.trim() || isSubmitting}>
-              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />}
               {editData ? "Update Application" : "Add to Tracker"}
             </Button>
           </div>

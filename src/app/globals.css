@@ -66,7 +66,9 @@
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  /* 0.55, not 0.708: the focus ring must clear 3:1 against --background
+     (WCAG 1.4.11). The lighter grey measured 2.58:1. */
+  --ring: oklch(0.55 0 0);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -91,7 +93,10 @@
   --popover: oklch(0.18 0.02 260);
   --popover-foreground: oklch(0.985 0 0);
   --primary: oklch(0.6 0.15 250);
-  --primary-foreground: oklch(0.985 0 0);
+  /* Near-black, not white: white on this blue is 3.76:1, dark is 5.04:1.
+     --primary is only ever used as a fill behind this token, or as
+     `text-primary` on --background/--card (5.13:1 / 4.79:1). */
+  --primary-foreground: oklch(0.145 0 0);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
@@ -110,7 +115,7 @@
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.6 0.15 250);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-primary-foreground: oklch(0.145 0 0);
   --sidebar-accent: oklch(0.269 0 0);
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);

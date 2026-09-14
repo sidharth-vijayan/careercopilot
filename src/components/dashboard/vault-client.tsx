@@ -260,10 +260,12 @@ export function VaultClient({ initialItems }: { initialItems: VaultItem[] }) {
 
                     <div className="flex items-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
                       <Button size="icon" variant="ghost" className="h-9 w-9 text-muted-foreground hover:text-foreground" onClick={() => openEditForm(item)}>
-                        <Edit3 className="h-4.5 w-4.5" />
+                        <span className="sr-only">Edit {item.title}</span>
+                        <Edit3 className="h-4.5 w-4.5" aria-hidden="true" />
                       </Button>
                       <Button size="icon" variant="ghost" className="h-9 w-9 text-muted-foreground hover:text-destructive" onClick={() => handleDelete(item.id)}>
-                        <Trash2 className="h-4.5 w-4.5" />
+                        <span className="sr-only">Delete {item.title}</span>
+                        <Trash2 className="h-4.5 w-4.5" aria-hidden="true" />
                       </Button>
                     </div>
                   </div>
@@ -308,10 +310,11 @@ export function VaultClient({ initialItems }: { initialItems: VaultItem[] }) {
               <form onSubmit={handleSave} className="space-y-5">
                 {/* Title */}
                 <div className="space-y-2">
-                  <label className="text-xs font-extrabold uppercase text-muted-foreground tracking-wider">
+                  <label htmlFor="vault-item-title" className="text-xs font-extrabold uppercase text-muted-foreground tracking-wider">
                     {formType === "skill" ? "Skill Category Title" : formType === "project" ? "Project Name" : "Job Title & Company"}
                   </label>
                   <input
+                    id="vault-item-title"
                     type="text"
                     required
                     placeholder={formType === "skill" ? "e.g. Languages & Frameworks" : formType === "project" ? "e.g. Personal Portfolio Website" : "e.g. Full Stack Developer at Google"}
@@ -324,26 +327,32 @@ export function VaultClient({ initialItems }: { initialItems: VaultItem[] }) {
                 {/* Bullets/Skill Lists */}
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <label className="text-xs font-extrabold uppercase text-muted-foreground tracking-wider">
+                    <span id="vault-bullets-label" className="text-xs font-extrabold uppercase text-muted-foreground tracking-wider">
                       {formType === "skill" ? "Individual Skills (Tags)" : "Bullet Achievements"}
-                    </label>
+                    </span>
                     <Button type="button" variant="ghost" className="h-7 px-2 text-xs font-bold text-primary flex items-center gap-1" onClick={handleAddBulletField}>
                       <Plus className="h-3 w-3" />
                       Add Field
                     </Button>
                   </div>
 
-                  <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1">
+                  <div
+                    className="space-y-3 max-h-[350px] overflow-y-auto pr-1"
+                    role="group"
+                    aria-labelledby="vault-bullets-label"
+                  >
                     {bullets.map((bullet, idx) => (
                       <div key={idx} className="flex gap-2 items-start">
                         <textarea
+                          aria-label={`${formType === "skill" ? "Skill" : "Bullet point"} ${idx + 1}`}
                           placeholder={formType === "skill" ? "e.g. TypeScript" : "e.g. Achieved 25% query latency drop by implementing Redis caching layers."}
                           className="flex-1 min-h-[50px] rounded-md border bg-transparent px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary resize-none"
                           value={bullet}
                           onChange={(e) => handleBulletChange(idx, e.target.value)}
                         />
                         <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive shrink-0 mt-1" onClick={() => handleRemoveBulletField(idx)}>
-                          <Trash2 className="h-3.5 w-3.5" />
+                          <span className="sr-only">Remove field {idx + 1}</span>
+                          <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
                         </Button>
                       </div>
                     ))}

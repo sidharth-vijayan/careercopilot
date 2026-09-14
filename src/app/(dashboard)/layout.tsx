@@ -26,6 +26,14 @@ export default async function DashboardLayout({
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
+      {/* The sidebar is ~15 links deep; without this every page starts with a
+          tab through all of them. */}
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-primary-foreground"
+      >
+        Skip to main content
+      </a>
       <Sidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
         <Header profile={profile} />
@@ -42,7 +50,7 @@ export default async function DashboardLayout({
         )}
 
         {/* pb-24 on mobile clears the fixed bottom tab bar. */}
-        <main className="flex-1 overflow-y-auto bg-muted/30 p-4 pb-24 md:p-8">
+        <main id="main" tabIndex={-1} className="flex-1 overflow-y-auto bg-muted/30 p-4 pb-24 md:p-8">
           {children}
         </main>
       </div>

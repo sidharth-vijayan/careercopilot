@@ -33,7 +33,7 @@ const steps = [
     step: "03",
     name: "Send it",
     description:
-      "Export an ATS-safe PDF or DOCX, or publish a link recruiters can open in the browser. Every draft stays saved.",
+      "Export a clean, text-based PDF or DOCX, or publish a link recruiters can open in the browser. Every draft stays saved.",
     icon: FileDown,
   },
 ];
@@ -61,7 +61,7 @@ const tools = [
 
 export function Features() {
   return (
-    <section id="features" className="bg-muted/50 py-24 sm:py-32">
+    <section id="how-it-works" className="bg-muted/50 py-24 sm:py-32">
       <div className="container mx-auto px-4 md:px-8">
         <div className="mx-auto max-w-3xl lg:text-center">
           <h2 className="text-sm font-bold uppercase leading-7 tracking-wider text-primary">
@@ -102,7 +102,7 @@ export function Features() {
           </dl>
         </div>
 
-        <div className="mx-auto mt-20 max-w-5xl">
+        <div id="features" className="mx-auto mt-20 max-w-5xl scroll-mt-28">
           <h3 className="mb-8 text-center text-sm font-bold uppercase tracking-wider text-muted-foreground">
             Also included
           </h3>

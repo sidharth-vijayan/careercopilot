@@ -126,8 +126,8 @@ Requirements:
           <form onSubmit={handleTailor} className="lg:col-span-2 space-y-6">
             <div className="rounded-xl border bg-card p-6 shadow-sm space-y-4">
               <div className="flex justify-between items-center border-b pb-4">
-                <label className="text-sm font-bold text-foreground flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-primary" />
+                <label htmlFor="tailor-jd" className="text-sm font-bold text-foreground flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-primary" aria-hidden="true" />
                   Target Job Description
                 </label>
                 <Button type="button" variant="ghost" className="h-8 px-3 text-xs font-bold text-primary flex items-center gap-1 border border-dashed border-primary/20 bg-primary/5 hover:bg-primary/10" onClick={loadDemoJobDescription}>
@@ -136,6 +136,7 @@ Requirements:
               </div>
 
               <textarea
+                id="tailor-jd"
                 required
                 rows={12}
                 placeholder="Paste the entire text of the job description here. The more detailed, the better our AI will customize your bullet points..."
@@ -171,14 +172,17 @@ Requirements:
               </li>
               <li className="flex gap-3 text-sm text-muted-foreground">
                 <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold shrink-0">3</span>
-                <span>It optimizes active verbs and scales keyword placement so your resume stands out instantly in ATS parsing systems.</span>
+                <span>It rewrites each bullet with stronger verbs and the wording the posting actually uses, so a keyword search over your resume finds the same terms the posting asks for.</span>
               </li>
             </ul>
 
             <div className="border-t pt-4 bg-primary/5 rounded-lg border border-primary/10 p-4 space-y-2 mt-2">
-              <h4 className="text-xs font-extrabold uppercase text-foreground tracking-wider">ATS Compliance Notice</h4>
+              <h4 className="text-xs font-extrabold uppercase text-foreground tracking-wider">Before you send it</h4>
               <p className="text-[11px] text-muted-foreground leading-relaxed">
-                Word files (.docx) offer the absolute highest indexing rate across corporate parsing algorithms like Workday and Taleo. Flat PDFs are notoriously difficult for systems to scrape properly.
+                Read every line — the model can overstate a result or invent a
+                detail, and what you send goes out under your name. Both export
+                formats keep the text selectable rather than baked into an image,
+                which is what matters if the recipient parses it automatically.
               </p>
             </div>
           </div>
@@ -352,7 +356,8 @@ Requirements:
             <Sparkles className="h-10 w-10 text-primary mx-auto animate-pulse" />
             <h3 className="text-2xl font-extrabold tracking-tight">Your tailored resume is ready.</h3>
             <p className="text-muted-foreground text-sm max-w-md mx-auto leading-relaxed">
-              Open with Word or Google Docs, perform minor adjustments, and apply immediately with the absolute highest probability of passing ATS checks.
+              Open it in Word or Google Docs, check every line against what you
+              actually did, then send it.
             </p>
             <div className="pt-2 flex justify-center gap-4">
               <Button variant="outline" className="h-12 px-6 font-semibold" onClick={handleReset}>

@@ -23,20 +23,27 @@ export const metadata: Metadata = {
       ? `https://${process.env.VERCEL_URL}`
       : "http://localhost:3000"
   ),
-  title: "CareerCopilot | Land your dream job with AI",
-  description: "Intelligent resume optimization and job matching platform. Tailor your resume instantly to any job description and track your applications.",
+  // Describes what the product does. It is not a job board, does not match you
+  // to openings, and cannot promise an outcome — so the copy does not say so.
+  title: "CareerCopilot | Tailor your resume to every job",
+  description:
+    "Keep every role, project and skill in one Vault, then re-cut it for each job description. Free, with a daily AI limit.",
   openGraph: {
     title: "CareerCopilot",
-    description: "Land your dream job with AI precision. Automatically tailor resumes and track applications.",
-    url: "https://careercopilot.app", // Adjust once custom domain is set
+    description:
+      "Write your experience once. Tailor it to every job, and track where it went.",
+    // Resolved against metadataBase, so this follows the actual deployment
+    // rather than asserting a domain that may not be live.
+    url: "/",
     siteName: "CareerCopilot",
     locale: "en_US",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "CareerCopilot | Land your dream job with AI",
-    description: "Intelligent resume optimization and job matching platform.",
+    title: "CareerCopilot | Tailor your resume to every job",
+    description:
+      "One Vault of your experience, re-cut per job description. Free, with a daily AI limit.",
   },
 };
 

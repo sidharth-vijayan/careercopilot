@@ -144,6 +144,11 @@ export function ChatClient() {
           <span className="sr-only">Send</span>
         </Button>
       </form>
+
+      <p className="border-t px-3 py-2 text-center text-xs text-muted-foreground">
+        Answers come from a language model and can be wrong. This is not legal,
+        immigration or financial advice.
+      </p>
     </div>
   );
 }
