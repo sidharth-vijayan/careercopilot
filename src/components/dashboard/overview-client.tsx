@@ -42,7 +42,7 @@ export function OverviewClient({ resumes }: OverviewClientProps) {
           </h2>
           <p className="text-muted-foreground">
             {resumes.length === 0
-              ? "Upload your resume once. Everything else in CareerCopilot builds on it."
+              ? "Upload your resume once. Everything else in Recut builds on it."
               : "Add another version to analyze against."}
           </p>
         </div>

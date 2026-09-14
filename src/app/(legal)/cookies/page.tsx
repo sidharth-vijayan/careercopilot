@@ -4,9 +4,9 @@ import Link from "next/link";
 import { SITE } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Cookie Policy | CareerCopilot",
+  title: "Cookie Policy | Recut",
   description:
-    "Every cookie and browser storage key CareerCopilot uses, and why there is no cookie banner.",
+    "Every cookie and browser storage key Recut uses, and why there is no cookie banner.",
 };
 
 export default function CookiesPage() {
@@ -26,7 +26,7 @@ export default function CookiesPage() {
 
       <table>
         <caption className="sr-only">
-          Cookies and browser storage used by CareerCopilot
+          Cookies and browser storage used by Recut
         </caption>
         <thead>
           <tr>

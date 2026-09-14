@@ -2,7 +2,7 @@ import { getTailoredResumes } from "@/actions/tailored";
 import { TailoredClient } from "@/components/dashboard/tailored-client";
 
 export const metadata = {
-  title: "Tailored Drafts · CareerCopilot",
+  title: "Tailored Drafts · Recut",
 };
 
 export default async function TailoredPage() {

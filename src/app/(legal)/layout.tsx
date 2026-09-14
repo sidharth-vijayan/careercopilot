@@ -22,7 +22,7 @@ export default function LegalLayout({
           <Link href="/" className="flex items-center gap-2.5">
             <BrandIcon size="sm" />
             <span className="text-lg font-bold tracking-tight text-foreground">
-              CareerCopilot
+              Recut
             </span>
           </Link>
           <ModeToggle />

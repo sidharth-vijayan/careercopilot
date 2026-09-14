@@ -6,7 +6,7 @@ import {
 } from "@/components/dashboard/overview-client";
 
 export const metadata = {
-  title: "Overview · CareerCopilot",
+  title: "Overview · Recut",
 };
 
 export default async function DashboardPage() {

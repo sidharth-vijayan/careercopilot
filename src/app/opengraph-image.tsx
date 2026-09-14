@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const alt =
-  "CareerCopilot — write your experience once, then tailor it to every job.";
+  "Recut — write your experience once, then tailor it to every job.";
 export const size = {
   width: 1200,
   height: 630,
@@ -72,7 +72,7 @@ export default async function Image() {
               margin: 0,
             }}
           >
-            CareerCopilot
+            Recut
           </h1>
         </div>
 

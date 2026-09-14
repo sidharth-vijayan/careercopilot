@@ -5,9 +5,9 @@ import { DAILY_AI_LIMIT } from "@/lib/quota";
 import { SITE } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Terms of Use | CareerCopilot",
+  title: "Terms of Use | Recut",
   description:
-    "The terms you agree to by using CareerCopilot: fair use, AI output, your content, refunds and liability.",
+    "The terms you agree to by using Recut: fair use, AI output, your content, refunds and liability.",
 };
 
 export default function TermsPage() {
@@ -23,7 +23,7 @@ export default function TermsPage() {
         <a href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</a>.
       </p>
 
-      <h2 id="what">What CareerCopilot is</h2>
+      <h2 id="what">What Recut is</h2>
 
       <p>
         A writing tool. You store your experience once, and it uses AI models to

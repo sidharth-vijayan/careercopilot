@@ -135,7 +135,7 @@ export function CoverLetterClient({ letters }: { letters: SavedCoverLetter[] }) 
               No cover letter yet
             </h3>
             <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-              Fill in the role on the left and CareerCopilot will draft a letter from
+              Fill in the role on the left and Recut will draft a letter from
               your Vault experience.
             </p>
           </div>

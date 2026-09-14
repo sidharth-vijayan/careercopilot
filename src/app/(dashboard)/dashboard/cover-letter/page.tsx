@@ -2,7 +2,7 @@ import { getCoverLetters } from "@/actions/cover-letter";
 import { CoverLetterClient } from "@/components/dashboard/cover-letter-client";
 
 export const metadata = {
-  title: "Cover Letters · CareerCopilot",
+  title: "Cover Letters · Recut",
 };
 
 export default async function CoverLetterPage() {

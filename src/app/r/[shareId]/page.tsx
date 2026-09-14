@@ -5,7 +5,7 @@ import { getSharedResume } from "@/actions/tailored";
 import { BrandIcon } from "@/components/brand-icon";
 
 export const metadata = {
-  title: "Resume · CareerCopilot",
+  title: "Resume · Recut",
   // A shared resume is a personal document; keep it out of search results even
   // though the link itself is unguessable.
   robots: { index: false, follow: false },
@@ -71,7 +71,7 @@ export default async function SharedResumePage({
           className="inline-flex items-center gap-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
         >
           <BrandIcon size="sm" />
-          Built with CareerCopilot
+          Built with Recut
         </Link>
         <p className="mt-2 text-xs text-muted-foreground">
           <Link href="/privacy" className="underline underline-offset-2 hover:text-foreground">

@@ -3,7 +3,7 @@ import { getInterviewSessions } from "@/actions/interview";
 import { InterviewClient } from "@/components/dashboard/interview-client";
 
 export const metadata = {
-  title: "Interview Prep · CareerCopilot",
+  title: "Interview Prep · Recut",
 };
 
 export default async function InterviewPage() {

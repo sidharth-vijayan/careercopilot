@@ -23,7 +23,7 @@ export function ResumesClient({ resumes }: { resumes: ResumeSummary[] }) {
         />
         <h3 className="text-base font-semibold text-foreground">No resumes yet</h3>
         <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
-          Upload a PDF or DOCX and CareerCopilot will extract the text for analysis,
+          Upload a PDF or DOCX and Recut will extract the text for analysis,
           tailoring and interview prep.
         </p>
         <Link href="/dashboard" className={`mt-4 ${buttonVariants({ size: "sm" })}`}>

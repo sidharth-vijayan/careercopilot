@@ -19,7 +19,7 @@ export function Navbar() {
         <div className="flex items-center gap-2">
           <Link href="/" onClick={handleLogoClick} className="flex items-center space-x-3.5">
             <BrandIcon size="lg" />
-            <span className="font-extrabold text-2xl md:text-3xl tracking-tight text-foreground">CareerCopilot</span>
+            <span className="font-extrabold text-2xl md:text-3xl tracking-tight text-foreground">Recut</span>
           </Link>
         </div>
         <nav className="hidden md:flex items-center gap-8 text-base md:text-lg font-semibold">

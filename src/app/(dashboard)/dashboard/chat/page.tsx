@@ -1,7 +1,7 @@
 import { ChatClient } from "@/components/dashboard/chat-client";
 
 export const metadata = {
-  title: "Ask AI · CareerCopilot",
+  title: "Ask AI · Recut",
 };
 
 export default function ChatPage() {

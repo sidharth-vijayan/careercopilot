@@ -133,7 +133,7 @@ export async function importJobDescription(
           headers: {
             // Some boards return an error page to an unrecognised agent.
             "User-Agent":
-              "Mozilla/5.0 (compatible; CareerCopilot/1.0; +https://github.com/sidharth-vijayan/careercopilot)",
+              "Mozilla/5.0 (compatible; Recut/1.0; +https://github.com/sidharth-vijayan/recut)",
             Accept: "text/html,application/xhtml+xml",
           },
         });

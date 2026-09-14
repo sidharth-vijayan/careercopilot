@@ -2,8 +2,8 @@ import { AuthForm } from "@/components/auth/auth-form";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Create an account | CareerCopilot",
-  description: "Sign up for CareerCopilot",
+  title: "Create an account | Recut",
+  description: "Sign up for Recut",
 };
 
 export default function SignupPage() {

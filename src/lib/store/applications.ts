@@ -43,7 +43,7 @@ export const useApplicationStore = create<ApplicationStore>()(
         })),
     }),
     {
-      name: "careercopilot-applications",
+      name: "recut-applications",
     }
   )
 );

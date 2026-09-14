@@ -64,7 +64,7 @@ export function Hero() {
           className="mx-auto mt-8 max-w-2xl text-lg leading-relaxed text-muted-foreground sm:text-xl"
         >
           Keep every job, project and skill you&apos;ve ever had in your Vault. Paste a
-          job description and CareerCopilot picks the relevant pieces, rewrites them
+          job description and Recut picks the relevant pieces, rewrites them
           for that role, and hands you a resume to send.
         </motion.p>
 

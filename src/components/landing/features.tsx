@@ -26,7 +26,7 @@ const steps = [
     step: "02",
     name: "Paste a job description",
     description:
-      "CareerCopilot reads the posting, picks the most relevant items from your Vault, and rewrites each bullet around the keywords that role actually asks for.",
+      "Recut reads the posting, picks the most relevant items from your Vault, and rewrites each bullet around the keywords that role actually asks for.",
     icon: Sparkles,
   },
   {
@@ -71,7 +71,7 @@ export function Features() {
             One Vault. Every application.
           </p>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground">
-            Most resume tools make you start over for each job. CareerCopilot keeps
+            Most resume tools make you start over for each job. Recut keeps
             your experience in one place and re-cuts it per role.
           </p>
         </div>

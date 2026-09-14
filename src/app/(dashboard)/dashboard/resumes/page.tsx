@@ -2,7 +2,7 @@ import { getResumes } from "@/actions/resumes";
 import { ResumesClient } from "@/components/dashboard/resumes-client";
 
 export const metadata = {
-  title: "My Resumes · CareerCopilot",
+  title: "My Resumes · Recut",
 };
 
 export default async function ResumesPage() {

@@ -2,7 +2,7 @@ import { getAnalytics } from "@/actions/stats";
 import { AnalyticsClient } from "@/components/dashboard/analytics-client";
 
 export const metadata = {
-  title: "Analytics · CareerCopilot",
+  title: "Analytics · Recut",
 };
 
 export default async function AnalyticsPage() {

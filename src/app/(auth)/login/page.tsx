@@ -2,7 +2,7 @@ import { AuthForm } from "@/components/auth/auth-form";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Login | CareerCopilot",
+  title: "Login | Recut",
   description: "Login to your account",
 };
 

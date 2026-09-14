@@ -2,7 +2,7 @@ import { getUserProfile } from "@/actions/user";
 import { SettingsClient } from "@/components/dashboard/settings-client";
 
 export const metadata = {
-  title: "Settings · CareerCopilot",
+  title: "Settings · Recut",
 };
 
 export default async function SettingsPage() {

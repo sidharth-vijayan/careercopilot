@@ -4,9 +4,9 @@ import Link from "next/link";
 import { SITE } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy | CareerCopilot",
+  title: "Privacy Policy | Recut",
   description:
-    "What CareerCopilot collects, who processes it, how long it is kept, and how to export or delete it.",
+    "What Recut collects, who processes it, how long it is kept, and how to export or delete it.",
 };
 
 export default function PrivacyPage() {
@@ -38,7 +38,7 @@ export default function PrivacyPage() {
 
       <table>
         <caption className="sr-only">
-          Categories of personal data collected by CareerCopilot
+          Categories of personal data collected by Recut
         </caption>
         <thead>
           <tr>

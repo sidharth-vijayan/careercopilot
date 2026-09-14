@@ -73,7 +73,7 @@ Requirements:
             <Link href="/" className="flex items-center space-x-2">
               <BrandIcon />
               <span className="font-bold text-xl tracking-tight text-foreground">
-                CareerCopilot
+                Recut
               </span>
               <span className="hidden sm:inline-block text-xs font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
                 Demo
@@ -242,7 +242,7 @@ Requirements:
                       </p>
                     </div>
                     <div className="border-t pt-4 mt-4 flex items-center justify-between text-xs text-muted-foreground">
-                      <span>Analyzed by CareerCopilot AI Engine</span>
+                      <span>Analyzed by Recut AI Engine</span>
                       <span className="font-semibold text-primary">High Accuracy Mode</span>
                     </div>
                   </div>

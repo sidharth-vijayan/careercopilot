@@ -9,7 +9,7 @@
  * different address — it is the address data-rights requests arrive at.
  */
 export const SITE = {
-  name: "CareerCopilot",
+  name: "Recut",
   /** Operator. A solo project, not an incorporated company — say so plainly. */
   operator: "Sidharth Vijayan",
   operatorType: "an individual developer (sole operator, not a registered company)",
@@ -19,7 +19,7 @@ export const SITE = {
   country: "India",
   courts: "Pune, Maharashtra",
   contactEmail: "sidharthclt12@gmail.com",
-  repoUrl: "https://github.com/sidharth-vijayan/careercopilot",
+  repoUrl: "https://github.com/sidharth-vijayan/recut",
   /** Last substantive review of the legal pages. Bump when you edit them. */
   policyUpdated: "14 September 2026",
 } as const;

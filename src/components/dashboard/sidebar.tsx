@@ -21,7 +21,7 @@ export function Sidebar() {
         <Link href="/" className="flex items-center gap-2 px-2">
           <BrandIcon size="sm" />
           <span className="text-xl font-bold tracking-tight text-foreground">
-            CareerCopilot
+            Recut
           </span>
         </Link>
       </div>
@@ -62,10 +62,10 @@ export function Sidebar() {
       </nav>
 
       <div className="border-t p-4">
-        {/* careercopilot.app is not a domain we own, so the address that used to
+        {/* recut.app is not a domain we own, so the address that used to
             be hardcoded here dropped every report on the floor. */}
         <a
-          href={`mailto:${SITE.contactEmail}?subject=CareerCopilot%20feedback`}
+          href={`mailto:${SITE.contactEmail}?subject=Recut%20feedback`}
           target="_blank"
           rel="noreferrer"
           className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary/10 px-3 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary/20"

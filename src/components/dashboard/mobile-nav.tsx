@@ -79,7 +79,7 @@ export function MobileDrawer({
           <Link href="/" className="flex items-center gap-2">
             <BrandIcon size="sm" />
             <span className="font-bold tracking-tight text-foreground">
-              CareerCopilot
+              Recut
             </span>
           </Link>
           <button

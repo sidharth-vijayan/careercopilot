@@ -2,7 +2,7 @@ import { getVaultItems } from "@/actions/vault";
 import { VaultClient } from "@/components/dashboard/vault-client";
 
 export const metadata = {
-  title: "The Vault · CareerCopilot",
+  title: "The Vault · Recut",
 };
 
 type VaultItemType = "experience" | "project" | "skill";

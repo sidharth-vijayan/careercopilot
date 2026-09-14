@@ -90,7 +90,7 @@ export function Pricing() {
               </ul>
 
               <p className="mt-8 text-sm leading-relaxed text-muted-foreground">
-                CareerCopilot drafts and rewrites — it does not apply for you and
+                Recut drafts and rewrites — it does not apply for you and
                 cannot promise an interview. Check everything it writes before
                 you send it. Full detail in the{" "}
                 <Link href="/terms" className="underline underline-offset-2 hover:text-foreground">

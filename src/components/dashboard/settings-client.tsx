@@ -79,7 +79,7 @@ export function SettingsClient({ user }: { user: UserProfile }) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `careercopilot-export-${new Date().toISOString().slice(0, 10)}.json`;
+    link.download = `recut-export-${new Date().toISOString().slice(0, 10)}.json`;
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -188,7 +188,7 @@ export function SettingsClient({ user }: { user: UserProfile }) {
       <section className="rounded-xl border bg-card p-6">
         <h3 className="text-base font-semibold text-foreground">Your data</h3>
         <p className="mb-4 text-sm text-muted-foreground">
-          Download everything CareerCopilot holds about you as JSON — profile,
+          Download everything Recut holds about you as JSON — profile,
           resumes, Vault, analyses, applications, cover letters and interview
           sessions.
         </p>
