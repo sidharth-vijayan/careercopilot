@@ -14,9 +14,9 @@ services:
     image: postgres:17-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: careercopilot
-      POSTGRES_PASSWORD: careercopilot
-      POSTGRES_DB: careercopilot
+      POSTGRES_USER: recut
+      POSTGRES_PASSWORD: recut
+      POSTGRES_DB: recut
     ports:
       - "5432:5432"
     volumes:
@@ -24,7 +24,7 @@ services:
     healthcheck:
       # The app's entrypoint runs migrations immediately, so it must not start
       # until Postgres is actually accepting connections.
-      test: ["CMD-SHELL", "pg_isready -U careercopilot -d careercopilot"]
+      test: ["CMD-SHELL", "pg_isready -U recut -d recut"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -42,8 +42,8 @@ services:
     ports:
       - "3000:3000"
     environment:
-      DATABASE_URL: postgresql://careercopilot:careercopilot@db:5432/careercopilot
-      DIRECT_URL: postgresql://careercopilot:careercopilot@db:5432/careercopilot
+      DATABASE_URL: postgresql://recut:recut@db:5432/recut
+      DIRECT_URL: postgresql://recut:recut@db:5432/recut
       NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
       GEMINI_API_KEY: ${GEMINI_API_KEY}

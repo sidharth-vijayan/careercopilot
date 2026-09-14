@@ -125,7 +125,7 @@ const VAULT_ITEMS = [
   },
   {
     type: "project",
-    title: "CareerCopilot — AI Career Platform",
+    title: "Recut — AI Career Platform",
     bulletPoints: [
       "Full-stack Next.js 16 application with Supabase auth, Prisma/Postgres, and a dual-provider AI layer (Gemini with automatic Groq failover).",
       "Built a schema-validated AI pipeline that parses, validates and repairs model output, cutting malformed-response failures to near zero.",
@@ -175,7 +175,7 @@ const ANALYSES = [
 const daysAgo = (n) => new Date(Date.now() - n * 24 * 60 * 60 * 1000);
 
 const DEMO_RESUME_TEXT = `SIDDHARTH RAO
-demo@careercopilot.app | Bengaluru, India | linkedin.com/in/demo-candidate
+demo@recut.app | Bengaluru, India | linkedin.com/in/demo-candidate
 
 SUMMARY
 Backend-leaning full-stack engineer with internship and freelance experience building
@@ -192,7 +192,7 @@ Backend Developer (Freelance) — Meridian Logistics (2024 - 2025)
 - Implemented idempotent webhook processing with a replay queue.
 
 PROJECTS
-CareerCopilot — Full-stack AI career platform (Next.js, Prisma, Supabase, Gemini/Groq).
+Recut — Full-stack AI career platform (Next.js, Prisma, Supabase, Gemini/Groq).
 Transit Delay Predictor — Gradient-boosted arrival-delay model served via FastAPI.
 
 SKILLS
@@ -329,7 +329,7 @@ async function main() {
         projects: [
           {
             vaultItemId: "",
-            title: "CareerCopilot — AI Career Platform",
+            title: "Recut — AI Career Platform",
             originalBullets: ["Full-stack Next.js application with a dual-provider AI layer."],
             tailoredBullets: [
               "Built a fault-tolerant AI service layer with automatic provider failover and schema-validated responses, keeping the feature available through upstream outages.",

@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  Run the Strix AI pentesting agent against CareerCopilot.
+  Run the Strix AI pentesting agent against Recut.
 
 .DESCRIPTION
   Thin wrapper around the strix CLI installed in .strix/venv. Handles the
