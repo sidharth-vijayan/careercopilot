@@ -1,6 +1,5 @@
 import { ImageResponse } from "next/og";
-
-export const runtime = "edge";
+
 export const alt =
   "CareerCopilot — write your experience once, then tailor it to every job.";
 export const size = {
