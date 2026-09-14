@@ -8,6 +8,7 @@ import { requireSyncedUserId, requireWritableUserId } from "@/lib/auth";
 import { toActionError } from "@/lib/errors";
 import { uuidInput } from "@/lib/schemas";
 import { createClient } from "@/lib/supabase/server";
+import { storagePathFromUrl } from "@/lib/storage";
 
 export interface ResumeSummary {
   id: string;
@@ -126,21 +127,4 @@ export async function deleteResume(id: string): Promise<ActionResponse> {
   } catch (error) {
     return toActionError(error, "Could not delete that resume.");
   }
-}
-
-/**
- * Resolve the in-bucket object path for a stored resume.
- *
- * Uploads save `storageData.path` (e.g. "<userId>/<uuid>.pdf"), but rows
- * written by earlier versions may hold a full public URL, so accept both.
- */
-function storagePathFromUrl(fileUrl: string): string | null {
-  if (!fileUrl) return null;
-
-  const marker = "/object/public/resumes/";
-  const idx = fileUrl.indexOf(marker);
-  if (idx !== -1) return decodeURIComponent(fileUrl.slice(idx + marker.length));
-
-  // Already a bare path; anything else (an unrecognised URL) is not ours.
-  return fileUrl.startsWith("http") ? null : fileUrl;
 }
