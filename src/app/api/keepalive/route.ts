@@ -32,10 +32,13 @@ export async function GET(request: NextRequest) {
   const inlined = process.env.DATABASE_URL;
   const atRuntime = process.env[["DATABASE", "URL"].join("_")];
 
-  const connectionString = inlined ?? atRuntime;
+  const connectionString = inlined || atRuntime;
+  // Lengths, not values: "absent" and "present but empty" are different
+  // faults with the same symptom, and a length gives that away without
+  // printing a password into a response body.
   const env = {
-    inlined: Boolean(inlined),
-    atRuntime: Boolean(atRuntime),
+    inlined: inlined === undefined ? "absent" : inlined.length,
+    atRuntime: atRuntime === undefined ? "absent" : atRuntime.length,
   };
 
   if (!connectionString) {
