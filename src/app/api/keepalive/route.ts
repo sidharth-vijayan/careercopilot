@@ -28,6 +28,13 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     // Worth a loud log: if this fails for a week the project gets paused.
     console.error("[keepalive] database ping failed:", error);
-    return NextResponse.json({ ok: false }, { status: 503 });
+
+    // The error *code* is returned so a failing deploy can be diagnosed from
+    // outside — ENOTFOUND vs ECONNREFUSED vs 28P01 says whether the URL is
+    // missing, the host is wrong, or the password is. The message is not
+    // returned, because that one carries the connection string.
+    const code =
+      error instanceof Error && "code" in error ? String(error.code) : "unknown";
+    return NextResponse.json({ ok: false, code }, { status: 503 });
   }
 }
