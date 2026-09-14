@@ -1,6 +1,6 @@
 @AGENTS.md
 
-# CareerCopilot — Project Context
+# Recut — Project Context
 
 AI career platform by Sidharth Vijayan. Built as a portfolio piece **and** a tool
 he actually uses during job hunting. Both audiences matter: it has to look

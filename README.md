@@ -1,10 +1,10 @@
 <div align="center">
 
-# 👨🏻‍💻 CareerCopilot
+# 👨🏻‍💻 Recut
 
 ### Write your experience once. Tailor it to every job.
 
-[![CI](https://github.com/sidharth-vijayan/careercopilot/actions/workflows/ci.yml/badge.svg)](https://github.com/sidharth-vijayan/careercopilot/actions/workflows/ci.yml)
+[![CI](https://github.com/sidharth-vijayan/recut/actions/workflows/ci.yml/badge.svg)](https://github.com/sidharth-vijayan/recut/actions/workflows/ci.yml)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![Supabase](https://img.shields.io/badge/Supabase-Auth%20%26%20DB-3ECF8E?style=flat-square&logo=supabase)](https://supabase.com/)
@@ -30,7 +30,7 @@ Keep the experience, not the document.
 
 You fill a **Vault** once — every role, project and skill, with all the bullet
 points, including the ones that would never fit on a one-page resume. Then for
-each job you paste the description, and CareerCopilot selects the relevant
+each job you paste the description, and Recut selects the relevant
 subset, rewrites each bullet around that posting's language, and gives you a
 document to send.
 
@@ -160,8 +160,8 @@ a word carries the meaning. A table view is one click away.
 [Groq](https://console.groq.com/keys) — both have free tiers).
 
 ```bash
-git clone https://github.com/sidharth-vijayan/careercopilot.git
-cd careercopilot
+git clone https://github.com/sidharth-vijayan/recut.git
+cd recut
 npm install
 cp .env.example .env.local     # then fill it in
 npx prisma db push
