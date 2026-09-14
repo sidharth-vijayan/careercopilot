@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, Download, Loader2 } from "lucide-react";
 
@@ -88,8 +89,9 @@ export function SettingsClient({ user }: { user: UserProfile }) {
     const res = await deleteAccount();
 
     if (res.success) {
-      // Sign out too — the Supabase Auth user outlives our row, and leaving the
-      // session alive would land them on a dashboard with no data behind it.
+      // Sign out too: the session cookie is still valid for a few moments after
+      // the account behind it is gone, and leaving it alive would land them on
+      // a dashboard with nothing behind it.
       await logout();
     } else {
       setIsDeleting(false);
@@ -107,8 +109,11 @@ export function SettingsClient({ user }: { user: UserProfile }) {
 
         <form onSubmit={handleSave} className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium">Email address</label>
+            <label htmlFor="settings-email" className="mb-1 block text-sm font-medium">
+              Email address
+            </label>
             <input
+              id="settings-email"
               type="email"
               value={user.email}
               disabled
@@ -183,7 +188,9 @@ export function SettingsClient({ user }: { user: UserProfile }) {
       <section className="rounded-xl border bg-card p-6">
         <h3 className="text-base font-semibold text-foreground">Your data</h3>
         <p className="mb-4 text-sm text-muted-foreground">
-          Download everything CareerCopilot holds about you as JSON.
+          Download everything CareerCopilot holds about you as JSON — profile,
+          resumes, Vault, analyses, applications, cover letters and interview
+          sessions.
         </p>
         <Button variant="outline" onClick={handleExport} disabled={isExporting}>
           {isExporting ? (
@@ -195,14 +202,42 @@ export function SettingsClient({ user }: { user: UserProfile }) {
         </Button>
       </section>
 
+      <section className="rounded-xl border bg-card p-6">
+        <h3 className="text-base font-semibold text-foreground">
+          Policies
+        </h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          What is collected and who processes it, including the AI providers your
+          resume text is sent to.
+        </p>
+        <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm">
+          <li>
+            <Link href="/privacy" className="underline underline-offset-2 hover:text-foreground">
+              Privacy Policy
+            </Link>
+          </li>
+          <li>
+            <Link href="/terms" className="underline underline-offset-2 hover:text-foreground">
+              Terms of Use
+            </Link>
+          </li>
+          <li>
+            <Link href="/cookies" className="underline underline-offset-2 hover:text-foreground">
+              Cookie Policy
+            </Link>
+          </li>
+        </ul>
+      </section>
+
       <section className="rounded-xl border border-destructive/30 bg-destructive/5 p-6">
         <h3 className="flex items-center gap-2 text-base font-semibold text-destructive">
           <AlertTriangle className="h-4 w-4" aria-hidden="true" />
           Delete account
         </h3>
         <p className="mb-4 text-sm text-muted-foreground">
-          Permanently removes your resumes, Vault, analyses, applications and
-          drafts. This cannot be undone.
+          Permanently removes your resumes and the files behind them, your Vault,
+          analyses, applications, drafts and your sign-in record. This cannot be
+          undone — export your data first if you want a copy.
         </p>
 
         <label htmlFor="confirm-delete" className="mb-1 block text-sm font-medium">

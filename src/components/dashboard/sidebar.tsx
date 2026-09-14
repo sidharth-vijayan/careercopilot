@@ -6,6 +6,7 @@ import { MessageSquarePlus } from "lucide-react";
 
 import { BrandIcon } from "@/components/brand-icon";
 import { NAV_SECTIONS, isNavItemActive } from "@/components/dashboard/nav-items";
+import { SITE } from "@/lib/site";
 
 /**
  * Desktop sidebar. Hidden below `md`, where `MobileNav` takes over — the two
@@ -61,8 +62,10 @@ export function Sidebar() {
       </nav>
 
       <div className="border-t p-4">
+        {/* careercopilot.app is not a domain we own, so the address that used to
+            be hardcoded here dropped every report on the floor. */}
         <a
-          href="mailto:feedback@careercopilot.app?subject=Feedback%20%2F%20Feature%20Request"
+          href={`mailto:${SITE.contactEmail}?subject=CareerCopilot%20feedback`}
           target="_blank"
           rel="noreferrer"
           className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary/10 px-3 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary/20"

@@ -73,6 +73,15 @@ export default async function SharedResumePage({
           <BrandIcon size="sm" />
           Built with CareerCopilot
         </Link>
+        <p className="mt-2 text-xs text-muted-foreground">
+          <Link href="/privacy" className="underline underline-offset-2 hover:text-foreground">
+            Privacy
+          </Link>
+          {" · "}
+          <Link href="/terms" className="underline underline-offset-2 hover:text-foreground">
+            Terms
+          </Link>
+        </p>
       </footer>
     </div>
   );

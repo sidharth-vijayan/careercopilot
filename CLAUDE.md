@@ -98,7 +98,15 @@ All child tables index `userId` and cascade on user delete.
 See `.env.example`. `NEXT_PUBLIC_SUPABASE_URL`/`ANON_KEY`, `DATABASE_URL`,
 `DIRECT_URL`, one of `GEMINI_API_KEY`/`GROQ_API_KEY`, optional
 `DAILY_AI_LIMIT` (default 20), `DEMO_EMAIL`/`DEMO_PASSWORD`, and
-`SUPABASE_SERVICE_ROLE_KEY` (seed script only).
+`SUPABASE_SERVICE_ROLE_KEY` (seed script, and `deleteAccount` — deleting the
+Supabase Auth record needs admin rights; without the key the row survives and
+erasure is incomplete). Server-side only, never `NEXT_PUBLIC_`.
+
+### Legal pages
+`/privacy`, `/terms` (refunds at `#refunds`) and `/cookies` live in the
+`(legal)` route group and describe what the code actually does. Change the code
+and the policy stops being true — update both, and bump `policyUpdated` in
+`src/lib/site.ts`, which also holds the published contact address.
 
 Supabase needs a storage bucket named **`resumes`**. Keep it **private** — uploads
 and deletes run as the signed-in user under RLS, and the file is never read back
